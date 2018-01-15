@@ -18,6 +18,8 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.fields import NOT_PROVIDED
 
+from rest_framework_recursive.fields import RecursiveField
+
 
 class NullToDefaultMixin(object):
 

@@ -6,3 +6,4 @@ factory-boy>=2.8.1
 tox
 pytest
 pytest-django
+djangorestframework-recursive

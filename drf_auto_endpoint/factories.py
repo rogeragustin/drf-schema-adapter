@@ -121,6 +121,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
     for meta_field in meta_attrs['fields']:
         if meta_field not in base_class._declared_fields:
+            print(meta_field)
             try:
                 model_field = endpoint.model._meta.get_field(meta_field)
                 if isinstance(model_field, OneToOneRel):
@@ -131,7 +132,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
     print(cls_name)
     print(cls_attrs)
-    
+
     return type(cls_name, (NullToDefaultMixin, base_class, RecursiveField, ), cls_attrs)
 
 

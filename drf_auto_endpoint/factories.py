@@ -22,19 +22,16 @@ from django.db.models.fields import NOT_PROVIDED
 class NullToDefaultMixin(object):
 
     def __init__(self, *args, **kwargs):
-        print("holaaaaa")
         super(NullToDefaultMixin, self).__init__(*args, **kwargs)
         for field in self.Meta.fields:
             try:
                 model_field = self.Meta.model._meta.get_field(field)
-                print(model_field.get_internal_type())
                 if hasattr(model_field, 'default') and model_field.default != NOT_PROVIDED:
                     self.fields[field].allow_null = True
             except FieldDoesNotExist:
                 pass
 
     def validate(self, data):
-        print("adeeeeeeu")
         for field in self.Meta.fields:
             try:
                 model_field = self.Meta.model._meta.get_field(field)

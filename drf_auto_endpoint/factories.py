@@ -129,7 +129,9 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
-
+    print(cls_name)
+    print(cls_attrs)
+    
     return type(cls_name, (NullToDefaultMixin, base_class, RecursiveField, ), cls_attrs)
 
 

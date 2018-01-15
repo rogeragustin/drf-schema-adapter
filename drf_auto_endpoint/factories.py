@@ -44,6 +44,16 @@ class NullToDefaultMixin(object):
 
         return super(NullToDefaultMixin, self).validate(data)
 
+######
+# BEGINNING - ADDED CODE
+######
+class RecursiveSerializer(serializers.Serializer):
+    def to_representation(self, value):
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
+######
+# END - ADDED CODE
+######
 
 def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
@@ -82,7 +92,9 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     for field in meta_attrs['fields']:
         try:
             model_field = endpoint.model._meta.get_field(field)
-            if str(model_field.get_internal_type()) == "ForeignKey":
+            if model_field.name == "children":
+                cls_attrs[model_field.name] = RecursiveSerializer(many=True, read_only=True)
+            elif str(model_field.get_internal_type()) == "ForeignKey":
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
             elif str(model_field.get_internal_type()) == "ManyToManyField":
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=True)

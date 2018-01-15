@@ -91,12 +91,12 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     """
     for field in meta_attrs['fields']:
         try:
-            print(dir(meta_attrs['model']))
-            if meta_attrs['model']=='ProductCategory':
-                print(dir(model_field))
+            #print(dir(meta_attrs['model']))
+            #if meta_attrs['model']=='ProductCategory':
+            #    print(dir(model_field))
 
             model_field = endpoint.model._meta.get_field(field)
-            if model_field.name == "children":
+            if "children" in dir(meta_attrs['model']):
                 cls_attrs[model_field.name] = RecursiveSerializer(many=True, read_only=True)
             elif str(model_field.get_internal_type()) == "ForeignKey":
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)

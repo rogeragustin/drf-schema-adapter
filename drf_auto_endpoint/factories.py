@@ -118,7 +118,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     ######
     # END - ADDED CODE
     ######
-
+    print(base_class._declared_fields)
     for meta_field in meta_attrs['fields']:
         if meta_field not in base_class._declared_fields:
             print(meta_field)

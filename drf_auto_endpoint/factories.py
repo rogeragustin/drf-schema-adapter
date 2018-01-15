@@ -51,6 +51,8 @@ class NullToDefaultMixin(object):
 ######
 class RecursiveSerializer(serializers.Serializer):
     def to_representation(self, value):
+        print(self)
+        print(value)
         serializer = self.parent.parent.__class__(value, context=self.context)
         print("to_representation")
         print(serializer.data)

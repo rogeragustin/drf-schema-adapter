@@ -97,7 +97,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             elif str(model_field.get_internal_type()) == "ForeignKey":
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
                 print(model_field.foreign_related_fields)
-                print(model_field.get_forward_related_filter())
+                #print(model_field.get_forward_related_filter())
                 print(model_field.foreign_related_fields)
                 print(model_field.get_local_related_value())
                 print(model_field.get_reverse_related_filter())
@@ -107,7 +107,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 print(model_field.reverse_related_fields)
             elif str(model_field.get_internal_type()) == "ManyToManyField":
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=True)
-                print(dir(model_field))
+                #print(dir(model_field))
 
         except FieldDoesNotExist:
             pass

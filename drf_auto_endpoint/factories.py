@@ -91,6 +91,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     """
     for field in meta_attrs['fields']:
         try:
+            print(meta_attrs['model'])
             if meta_attrs['model']=='ProductCategory':
                 print(dir(model_field))
 

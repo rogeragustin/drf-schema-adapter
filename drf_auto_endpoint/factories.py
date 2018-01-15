@@ -102,7 +102,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             #    cls_attrs['children'] = RecursiveSerializer(many=True,read_only=True)
             if model_field.name == 'children':
                 #cls_attrs[model_field.name] = RecursiveSerializer(many=True, read_only=True)
-                cls_attrs[model_field.name] = serializers.ListSerializer(read_only=True, child=RecursiveField())
+                #cls_attrs[model_field.name] = serializers.ListSerializer(read_only=True, child=RecursiveField())
+                cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
             elif str(model_field.get_internal_type()) == "ForeignKey":
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
             elif str(model_field.get_internal_type()) == "ManyToManyField":

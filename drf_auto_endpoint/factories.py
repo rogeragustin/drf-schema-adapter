@@ -102,7 +102,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 model_field = endpoint.model._meta.get_field(meta_field)
                 if isinstance(model_field, OneToOneRel):
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
-                elif isinstance(model_field, ManyToOneRel) & str(model_field) != "children": # This part of the code has been modified too, as otherwise it was destroying the "children" case.
+                elif isinstance(model_field, ManyToOneRel) & str(model_field)!="children": # This part of the code has been modified too, as otherwise it was destroying the "children" case.
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()

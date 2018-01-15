@@ -22,19 +22,23 @@ from django.db.models.fields import NOT_PROVIDED
 class NullToDefaultMixin(object):
 
     def __init__(self, *args, **kwargs):
+        print("holaaaaa")
         super(NullToDefaultMixin, self).__init__(*args, **kwargs)
         for field in self.Meta.fields:
             try:
                 model_field = self.Meta.model._meta.get_field(field)
+                print(model_field.get_internal_type())
                 if hasattr(model_field, 'default') and model_field.default != NOT_PROVIDED:
                     self.fields[field].allow_null = True
             except FieldDoesNotExist:
                 pass
 
     def validate(self, data):
+        print("adeeeeeeu")
         for field in self.Meta.fields:
             try:
                 model_field = self.Meta.model._meta.get_field(field)
+
                 if hasattr(model_field, 'default') and model_field.default != NOT_PROVIDED and \
                         data.get(field, NOT_PROVIDED) is None:
                     data.pop(field)
@@ -70,6 +74,25 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     cls_attrs = {
         'Meta': Meta,
     }
+
+    ######
+    # BEGINNING - ADDED CODE
+    ######
+    """
+    When constructing a serializer, which envolves a fk, return the __str__(self) set in the model,
+    instead of the id.
+    """
+    for field in meta_attrs['fields']:
+        try:
+            model_field = endpoint.model._meta.get_field(field)
+            if str(model_field.get_internal_type()) == "ForeignKey":
+                cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
+
+        except FieldDoesNotExist:
+            pass
+    ######
+    # END - ADDED CODE
+    ######
 
     for meta_field in meta_attrs['fields']:
         if meta_field not in base_class._declared_fields:

@@ -118,16 +118,16 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     ######
     # END - ADDED CODE
     ######
-    print(base_class._declared_fields.keys())
-    print(base_class._declared_fields.values())
     for meta_field in meta_attrs['fields']:
         if meta_field not in base_class._declared_fields:
             print(meta_field)
             try:
                 model_field = endpoint.model._meta.get_field(meta_field)
                 if isinstance(model_field, OneToOneRel):
+                    print(1)
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
                 elif isinstance(model_field, ManyToOneRel):
+                    print(2)
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()

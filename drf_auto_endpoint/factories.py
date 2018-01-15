@@ -46,20 +46,6 @@ class NullToDefaultMixin(object):
 
         return super(NullToDefaultMixin, self).validate(data)
 
-######
-# BEGINNING - ADDED CODE
-######
-class RecursiveSerializer(serializers.Serializer):
-    def to_representation(self, value):
-        print(self)
-        print(value)
-        serializer = self.parent.parent.__class__(value, context=self.context)
-        print("to_representation")
-        print(serializer.data)
-        return serializer.data
-######
-# END - ADDED CODE
-######
 
 def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
@@ -93,17 +79,13 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     ######
     """
     When constructing a serializer, which envolves a fk, return the __str__(self) set in the model,
-    instead of the id.
+    instead of the id. If we detect a children model_field, we will return a tree-shaped serializer.
     """
     for field in meta_attrs['fields']:
         try:
             model_field = endpoint.model._meta.get_field(field)
             if model_field.name == 'children':
-                #cls_attrs[model_field.name] = RecursiveSerializer(many=True, read_only=True)
-                #cls_attrs[model_field.name] = serializers.ListSerializer(read_only=True, child=RecursiveField())
                 cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
-                #cls_attrs[model_field.name] = serializers.ListSerializer(read_only=True, child=RecursiveField())
-                #cls_attrs[model_field.name] = RecursiveSerializer(many=True, read_only=True)
             elif str(model_field.get_internal_type()) == "ForeignKey":
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
             elif str(model_field.get_internal_type()) == "ManyToManyField":
@@ -112,27 +94,21 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         except FieldDoesNotExist:
             pass
 
-    print(cls_name)
-    print(cls_attrs)
 
-    ######
-    # END - ADDED CODE
-    ######
     for meta_field in meta_attrs['fields']:
         if meta_field not in base_class._declared_fields:
             print(meta_field)
             try:
                 model_field = endpoint.model._meta.get_field(meta_field)
                 if isinstance(model_field, OneToOneRel):
-                    print(1)
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
-                elif isinstance(model_field, ManyToOneRel):
-                    print(2)
-                    #cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+                elif isinstance(model_field, ManyToOneRel) && model_field != "children": # This part of the code has been modified too, as otherwise it was destroying the "children" case.
+                    cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
-    print(cls_name)
-    print(cls_attrs)
+    ######
+    # END - ADDED CODE
+    ######
 
     return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)
 

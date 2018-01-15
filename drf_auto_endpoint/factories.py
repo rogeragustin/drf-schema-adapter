@@ -101,9 +101,12 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
             elif str(model_field.get_internal_type()) == "ManyToManyField":
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=True)
-        print(cls_attrs)
+
         except FieldDoesNotExist:
             pass
+
+    print(cls_attrs)
+
     ######
     # END - ADDED CODE
     ######

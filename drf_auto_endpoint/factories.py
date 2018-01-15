@@ -98,7 +98,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             #    print(dir(model_field))
 
             model_field = endpoint.model._meta.get_field(field)
-            print("children" in dir(meta_attrs['model'])
+            print("children" in dir(meta_attrs['model']))
             if "children" in dir(meta_attrs['model']):
                 print("hola")
                 cls_attrs['children'] = RecursiveSerializer(many=True, read_only=True)

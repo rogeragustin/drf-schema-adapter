@@ -129,6 +129,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 elif isinstance(model_field, ManyToOneRel):
                     print(2)
                     #cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+                    cls_attrs[meta_field] = serializers.ReadOnlyField()
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
     print(cls_name)

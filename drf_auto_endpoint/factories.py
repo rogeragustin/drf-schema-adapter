@@ -95,16 +95,13 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         try:
             model_field = endpoint.model._meta.get_field(field)
             if "children" in dir(meta_attrs['model']):
-                print("hola 1")
                 cls_attrs['children'] = "Pollo"
                 #cls_attrs['children'] = RecursiveSerializer(many=True, read_only=True)
             elif str(model_field.get_internal_type()) == "ForeignKey":
-                print("hola 2")
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
             elif str(model_field.get_internal_type()) == "ManyToManyField":
-                print("hola 3")
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=True)
-
+        print(cls_attrs)
         except FieldDoesNotExist:
             pass
     ######

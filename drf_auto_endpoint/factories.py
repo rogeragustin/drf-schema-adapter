@@ -86,7 +86,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     When constructing a serializer, which envolves a fk, return the __str__(self) set in the model,
     instead of the id. If we detect a children model_field, we will return a tree-shaped serializer.
     """
-
+    """
     for field in meta_attrs['fields']:
         try:
             model_field = endpoint.model._meta.get_field(field)
@@ -94,8 +94,23 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
 
             elif str(model_field.get_internal_type()) == "ForeignKey":
-                #cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
-                #cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=False)
+                cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
+            elif str(model_field.get_internal_type()) == "ManyToManyField":
+                cls_attrs[model_field.name] = serializers.StringRelatedField(many=True)
+        except FieldDoesNotExist:
+            pass
+    """
+    ctrl = False
+    for field in meta_attrs['fields']:
+        try:
+            model_field = endpoint.model._meta.get_field(field)
+            if model_field.name == 'children':
+                cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
+
+            elif str(model_field.get_internal_type()) == "ForeignKey":
+                ctrl = True
+                # cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
+                # cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=False)
                 nested_serializer = '{}Serializer()'.format(model_field.related_model.__name__)
                 print(nested_serializer)
                 cls_attrs[model_field.name] = eval(nested_serializer)
@@ -136,15 +151,18 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
-    """
+
+
+
+    print(cls_name)
+    print(cls_attrs)
+
     if nested_serializer == False:
         return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)
     else:
         return type(cls_name, (NullToDefaultMixin, WritableNestedModelSerializer, ), cls_attrs)
-    """
-    print(cls_name)
-    print(cls_attrs)
-    return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
+
+    #return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
 
 
 def pagination_factory(endpoint):

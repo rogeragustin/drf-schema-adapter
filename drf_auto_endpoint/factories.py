@@ -92,13 +92,14 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             model_field = endpoint.model._meta.get_field(field)
             if model_field.name == 'children':
                 cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
+            """
             elif str(model_field.get_internal_type()) == "ForeignKey":
                 #cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
-                #cls_attrs[model_field.name] = serializers.PrimaryKeyRelatedField(many=False)
+                cls_attrs[model_field.name] = serializers.PrimaryKeyRelatedField(many=False)
             elif str(model_field.get_internal_type()) == "ManyToManyField":
                 #cls_attrs[model_field.name] = serializers.StringRelatedField(many=True)
-                #cls_attrs[model_field.name] = serializers.PrimaryKeyRelatedField(many=True)
-
+                cls_attrs[model_field.name] = serializers.PrimaryKeyRelatedField(many=True)
+            """
         except FieldDoesNotExist:
             pass
     """

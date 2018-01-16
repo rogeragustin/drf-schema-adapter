@@ -21,6 +21,7 @@ from django.db.models.fields import NOT_PROVIDED
 
 # ADDED IMPORT
 from rest_framework_recursive.fields import RecursiveField
+from drf_writable_nested import WritableNestedModelSerializer
 
 
 class NullToDefaultMixin(object):
@@ -126,8 +127,10 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
-
-    return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)
+    if nested_serializer == False:
+        return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)
+    else
+        return type(cls_name, (NullToDefaultMixin, WritableNestedModelSerializer, ), cls_attrs)
 
 
 def pagination_factory(endpoint):

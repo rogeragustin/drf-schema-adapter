@@ -7,3 +7,4 @@ tox
 pytest
 pytest-django
 djangorestframework-recursive
+install drf-writable-nested

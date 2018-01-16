@@ -108,7 +108,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
 
             elif str(model_field.get_internal_type()) == "ForeignKey" and model_field.name != "composed_of" \
-                    and model_field.name != "available_in":
+                    and model_field.name != "available_in" and model_field.name != "parent":
                 ctrl = True
                 # cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
                 # cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=False)

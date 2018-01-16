@@ -106,8 +106,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             model_field = endpoint.model._meta.get_field(field)
             if model_field.name == 'children':
                 cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
-            print(model_field.model)
-            print(model_field.related_model)
+                print(model_field.model)
+                print(model_field.related_model)
             elif str(model_field.get_internal_type()) == "ForeignKey" and model_field.model != model_field.related_model:
                 ctrl = True
                 # cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)

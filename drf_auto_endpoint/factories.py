@@ -133,8 +133,9 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     if nested_serializer == False:
         return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)
     else:
-    """
         return type(cls_name, (NullToDefaultMixin, WritableNestedModelSerializer, ), cls_attrs)
+    """
+    return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
 
 
 def pagination_factory(endpoint):

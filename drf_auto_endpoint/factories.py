@@ -117,11 +117,15 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 # cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=False)
                 print(model_field.name)
                 cls_attrs[model_field.name] = serializer_factory(model=model_field.related_model)
-            """
-            elif str(model_field.get_internal_type()) == "ManyToManyField":
-                #cls_attrs[model_field.name] = serializers.StringRelatedField(many=True)
-                cls_attrs[model_field.name] = serializers.PrimaryKeyRelatedField(many=True)
-            """
+            elif str(model_field.get_internal_type()) == "ForeignKey" and \
+                    model_field.model != model_field.related_model and \
+                    "from_" not in model_field.name and "to_" not in model_field.name:
+                ctrl = True
+                # cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
+                # cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=False)
+                print(model_field.name)
+                cls_attrs[model_field.name] = serializer_factory(model=model_field.related_model)
+
         except FieldDoesNotExist:
             pass
     """

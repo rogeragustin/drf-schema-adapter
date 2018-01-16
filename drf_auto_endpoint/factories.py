@@ -104,10 +104,9 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             if model_field.name == 'children' or str(model_field.get_internal_type()) == "ForeignKey" \
                     or str(model_field.get_internal_type()) == "ManyToManyField":
                 nested_serializer = True
-                print(model)
                 print(model_field)
-                print(model_field.model.name)
-                print(dir(model_field))
+                print(model_field.related_model)
+                print(dir(model_field.model))
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
 
         except FieldDoesNotExist:

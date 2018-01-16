@@ -129,7 +129,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
     if nested_serializer == False:
         return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)
-    else
+    else:
         return type(cls_name, (NullToDefaultMixin, WritableNestedModelSerializer, ), cls_attrs)
 
 

@@ -62,6 +62,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     if base_class is None:
         base_class = endpoint.base_serializer
 
+    print(endpoint.model.__name__)
+
     meta_attrs = {
         'model': endpoint.model,
         'fields': fields if fields is not None else endpoint.get_fields_for_serializer()

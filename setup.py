@@ -49,6 +49,6 @@ setup(
         'django-filter>=0.13.0',
         'Inflector>=2.0.11',
         'djangorestframework-recursive>=0.1.2',
-        'drf-writable-nested-0.3.2',
+        'drf-writable-nested>=0.3.2',
     ]
 )

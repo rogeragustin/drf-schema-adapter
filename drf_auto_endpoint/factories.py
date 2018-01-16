@@ -86,7 +86,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     When constructing a serializer, which envolves a fk, return the __str__(self) set in the model,
     instead of the id. If we detect a children model_field, we will return a tree-shaped serializer.
     """
-    """
+
     for field in meta_attrs['fields']:
         try:
             model_field = endpoint.model._meta.get_field(field)
@@ -114,7 +114,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
         except FieldDoesNotExist:
             pass
-
+    """
     ######
     # END - ADDED CODE
     ######
@@ -129,9 +129,11 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
+    """
     if nested_serializer == False:
         return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)
     else:
+    """
         return type(cls_name, (NullToDefaultMixin, WritableNestedModelSerializer, ), cls_attrs)
 
 

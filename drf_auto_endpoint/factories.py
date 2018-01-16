@@ -101,12 +101,10 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     for field in meta_attrs['fields']:
         try:
             model_field = endpoint.model._meta.get_field(field)
-            print(model_field.name == 'children')
-            print(str(model_field.get_internal_type()) == "ForeignKey")
-            print(str(model_field.get_internal_type()) == "ManyToManyField")
             if model_field.name == 'children' or str(model_field.get_internal_type()) == "ForeignKey" \
                     or str(model_field.get_internal_type()) == "ManyToManyField":
                 nested_serializer = True
+                print(model_field.model.__name__)
                 print(model_field.related_model.__name__)
                 print(model_field.name)
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)

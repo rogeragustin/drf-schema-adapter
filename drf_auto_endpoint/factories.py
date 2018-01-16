@@ -105,7 +105,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                     or str(model_field.get_internal_type()) == "ManyToManyField":
                 nested_serializer = True
                 print(model_field)
-                print(model_field.model.__class__.__name__)
+                print(model_field.model.__name__)
                 print(dir(model_field.model))
                 cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
 

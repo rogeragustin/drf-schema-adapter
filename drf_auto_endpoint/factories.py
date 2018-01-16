@@ -96,7 +96,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             elif str(model_field.get_internal_type()) == "ForeignKey":
                 #cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
                 #cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=False)
-                cls_atts[model_field.name] = '{}Serializer'.format(model_field.related_model.__name__)
+                cls_attrs[model_field.name] = '{}Serializer'.format(model_field.related_model.__name__)
             """
             elif str(model_field.get_internal_type()) == "ManyToManyField":
                 #cls_attrs[model_field.name] = serializers.StringRelatedField(many=True)

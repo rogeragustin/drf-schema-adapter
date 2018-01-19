@@ -140,13 +140,14 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
         try:
             model_field = endpoint.model._meta.get_field(field)
+            print(model_field.name)
             #print(model_field.model)
             #print(model_field.related_model)
             if model_field.name == 'children':
                 cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
 
             elif model_field.name[-4:] == "_set":
-                print(model_field.name[-4:])
+
                 # TODO -> CREATE SERIALIZER
                 cls_attrs[model_field.name] = ProductIngredientSerializer(many=True, required=False,
                                                                     allow_null=True)  # No cal especificar source = "productingredient_set" pq ja es igual al field name.

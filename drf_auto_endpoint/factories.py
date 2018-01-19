@@ -138,8 +138,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     for field in meta_attrs['fields']:
         try:
             model_field = endpoint.model._meta.get_field(field)
-            print(model_field.model)
-            print(model_field.related_model)
+            #print(model_field.model)
+            #print(model_field.related_model)
             if model_field.name == 'children':
                 cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
 
@@ -159,7 +159,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 ctrl = True
                 # cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
                 # cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=False)
-                print(model_field.name)
+                #print(model_field.name)
                 cls_attrs[model_field.name] = serializer_factory(model=model_field.related_model)
 
         except FieldDoesNotExist:
@@ -197,8 +197,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
 
 
-    print(cls_name)
-    print(cls_attrs)
+    ##print(cls_name)
+    #print(cls_attrs)
 
     if ctrl == False:
         return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)

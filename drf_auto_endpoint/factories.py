@@ -133,6 +133,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     ctrl = False
 
     ret = M2MSerializerAux(cls_attrs['Meta'])
+    print("hola")
     print(ret)
 
     for field in meta_attrs['fields']:
@@ -143,7 +144,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             if model_field.name == 'children':
                 cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
 
-            elif model_field.name[-4:] == "_set"
+            elif model_field.name[-4:] == "_set":
                 # TODO -> CREATE SERIALIZER
                 cls_attrs[model_field.name] = ProductIngredientSerializer(many=True, required=False,
                                                                     allow_null=True)  # No cal especificar source = "productingredient_set" pq ja es igual al field name.

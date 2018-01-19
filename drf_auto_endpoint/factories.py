@@ -22,6 +22,8 @@ from django.db.models.fields import NOT_PROVIDED
 # ADDED IMPORT
 from rest_framework_recursive.fields import RecursiveField
 from drf_writable_nested import WritableNestedModelSerializer
+from datetime import datetime
+
 
 
 class NullToDefaultMixin(object):
@@ -48,6 +50,34 @@ class NullToDefaultMixin(object):
                 pass
 
         return super(NullToDefaultMixin, self).validate(data)
+
+
+def M2MSerializerAux(Meta):
+    """
+    Support function to get useful parameters for the internal logic of the create and update function of the custom
+    serializer when it comes to many to many fields for write/read.
+    :param Meta: 
+    :return: 
+    """
+    ret = {}
+
+    model_name = str(Meta.model.__name__)
+    ret['model_name'] = model_name
+    ret['m2m_fields'] = {}
+    related_fields = list(filter(lambda x: str(x)[-4:] == '_set', Meta.fields))
+
+    cont = 1
+    for field in related_fields:
+        rel_field = field
+        ret['m2m_fields'][rel_field] = {}
+        ret['m2m_fields'][rel_field]['related_name'] = field
+        ret['m2m_fields'][rel_field]['related_field'] = eval("Meta.model.{0}.rel.field.name".format(field))
+        ret['m2m_fields'][rel_field]['related_model'] = eval("Meta.model.{0}.rel.related_model.__name__".format(field))
+        ret['m2m_fields'][rel_field]['related_serializer'] = ret['m2m_fields'][rel_field][
+                                                                 'related_model'] + "Serializer"
+        cont += 1
+
+    return ret
 
 
 def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
@@ -101,6 +131,10 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             pass
     """
     ctrl = False
+
+    ret = M2MSerializerAux(cls_attrs['Meta'])
+    print(ret)
+
     for field in meta_attrs['fields']:
         try:
             model_field = endpoint.model._meta.get_field(field)
@@ -109,14 +143,16 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             if model_field.name == 'children':
                 cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
 
-            elif str(model_field.get_internal_type()) == "ForeignKey" and \
-                    model_field.model != model_field.related_model and \
-                    "from_" not in model_field.name and "to_" not in model_field.name:
-                ctrl = True
-                # cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
-                # cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=False)
-                print(model_field.name)
-                cls_attrs[model_field.name] = serializer_factory(model=model_field.related_model)
+            elif model_field.name[-4:] == "_set"
+                # TODO -> CREATE SERIALIZER
+                cls_attrs[model_field.name] = ProductIngredientSerializer(many=True, required=False,
+                                                                    allow_null=True)  # No cal especificar source = "productingredient_set" pq ja es igual al field name.
+
+
+
+
+
+
             elif str(model_field.get_internal_type()) == "ManyToMany" and \
                     model_field.model != model_field.related_model and \
                     "from_" not in model_field.name and "to_" not in model_field.name:

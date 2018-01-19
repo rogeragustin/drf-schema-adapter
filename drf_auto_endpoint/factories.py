@@ -139,6 +139,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     for field in meta_attrs['fields']:
 
         try:
+            print(field)
             model_field = endpoint.model._meta.get_field(field)
             print(model_field.name)
             #print(model_field.model)

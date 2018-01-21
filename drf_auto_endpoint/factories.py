@@ -130,6 +130,9 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         except FieldDoesNotExist:
             pass
     """
+
+    """
+    WORK IN PROGRESS
     ctrl = False
 
     ret = M2MSerializerAux(cls_attrs['Meta'])
@@ -170,6 +173,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         except FieldDoesNotExist:
             pass
     """
+    """
+    INITIAL APPROACH
     ctrl = False
     for field in meta_attrs['fields']:
         try:

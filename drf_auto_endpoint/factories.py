@@ -153,9 +153,11 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     for f in [f for f in endpoint.model._meta.get_fields() if f.many_to_many and not f.auto_created and
               f.name in meta_attrs['fields']]:
         field = eval("endpoint.model.{}".format(f.name))
+        print(field)
+        print(f.name)
 
         try:
-            print(field)
+
             #print(model_field.model)
             #print(model_field.related_model)
             if field.field.name == 'children':

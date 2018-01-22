@@ -209,6 +209,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         try:
 
             through_model = M2MRelations(field, 'through_model')
+            print(through_model)
+            print(field.field.remote_field.name)
             related_serializer_factory(model=through_model, remote_field = field.field.remote_field.name)
 
             print (

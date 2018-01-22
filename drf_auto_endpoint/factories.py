@@ -154,7 +154,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             #print(model_field.model)
             #print(model_field.related_model)
             if field.field.name == 'children':
-                cls_attrs[field.field..name] = RecursiveField(required=False, allow_null=True, many=True)
+                cls_attrs[field.field.name] = RecursiveField(required=False, allow_null=True, many=True)
 
             """
             elif model_field.name[-4:] == "_set":

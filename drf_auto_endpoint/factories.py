@@ -94,7 +94,7 @@ def M2MRelations(field, attr):
 
 
 
-def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
+def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None, remote_field):
     if model is not None:
         assert endpoint is None, "You cannot specify both a model and an endpoint"
         from .endpoints import Endpoint
@@ -104,6 +104,13 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
 
     if base_class is None:
         base_class = endpoint.base_serializer
+
+    fields = [
+        f.name
+        for f in endpoint.model._meta.get_fields()
+        if f.name != 'created_at' and f.name != 'updated_at' and f.name != 'id'
+           and f.name != remote_field
+    ]
 
     meta_attrs = {
         'model': endpoint.model,
@@ -202,14 +209,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         try:
 
             through_model = eval(M2MRelations(field, 'through_model'))
-            through_model_fields = [
-                f.name
-                for f in through_model._meta.get_fields()
-                if f.name != 'created_at' and f.name != 'updated_at' and f.name != 'id'
-                and f.name != Product.ingredients.field.remote_field.name
-            ]
 
-            related_serializer_factory(endpoint=None, fields=through_model_fields, base_class=None, model=through_model)
+            related_serializer_factory(model=through_model, remote_field = field.remote_field.name)
 
             print (
                 "cls_attrs[field.field.name] = {0}(source=M2MRelations(field, 'related_name'), "

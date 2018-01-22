@@ -89,6 +89,10 @@ def M2MRelations(field, attr):
     elif attr == 'related_model':
         return field.field.related_model.__name__
 
+    elif attr == 'related_serializer':
+        return field.through.__name__+"Serializer"
+
+
 
 def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
@@ -153,15 +157,20 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     for f in [f for f in endpoint.model._meta.get_fields() if f.many_to_many and not f.auto_created and
               f.name in meta_attrs['fields']]:
         field = eval("endpoint.model.{}".format(f.name))
-        print(field)
-        print(f.name)
 
         try:
 
-            #print(model_field.model)
-            #print(model_field.related_model)
-            if field.field.name == 'children':
-                cls_attrs[field.field.name] = RecursiveField(required=False, allow_null=True, many=True)
+            #child_serializer_factory(endpoint=None, fields=None, base_class=None, model=None)
+
+            print (
+                "cls_attrs[field.field.name] = {0}(source=M2MRelations(field, 'related_name'), "
+                "many=True, required=False, allow_null=True)".format(M2MRelations(field, ''))
+            )
+            exec(
+                "cls_attrs[field.field.name] = {0}(source=M2MRelations(field, 'related_name'), "
+                "many=True, required=False, allow_null=True)".format(M2MRelations(field,''))
+            )
+
 
             """
             elif model_field.name[-4:] == "_set":

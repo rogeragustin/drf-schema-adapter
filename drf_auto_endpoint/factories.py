@@ -52,32 +52,42 @@ class NullToDefaultMixin(object):
         return super(NullToDefaultMixin, self).validate(data)
 
 
-def M2MSerializerAux(Meta):
+def M2MRelations(field, attr):
     """
-    Support function to get useful parameters for the internal logic of the create and update function of the custom
-    serializer when it comes to many to many fields for write/read.
-    :param Meta: 
+    Given a M2M field and a desired output, return the string containing the result.
+    :param field: 
+    :param attr: 
     :return: 
     """
-    ret = {}
+    if attr == 'name':
+        return field.field.name
 
-    model_name = str(Meta.model.__name__)
-    ret['model_name'] = model_name
-    ret['m2m_fields'] = {}
-    related_fields = list(filter(lambda x: str(x)[-4:] == '_set', Meta.fields))
+    elif attr == 'related_field':
+        #TODO que això no exploti en el cas que l'usuari hagi definit un related_name
+        # Alt: no es poden definir related_name i sempre s'ha de treballar en automàtic.
 
-    cont = 1
-    for field in related_fields:
-        rel_field = field
-        ret['m2m_fields'][rel_field] = {}
-        ret['m2m_fields'][rel_field]['related_name'] = field
-        ret['m2m_fields'][rel_field]['related_field'] = eval("Meta.model.{0}.rel.field.name".format(field))
-        ret['m2m_fields'][rel_field]['related_model'] = eval("Meta.model.{0}.rel.related_model.__name__".format(field))
-        ret['m2m_fields'][rel_field]['related_serializer'] = ret['m2m_fields'][rel_field][
-                                                                 'related_model'] + "Serializer"
-        cont += 1
+        if field.field.related_model != field.field.model:
+            return field.field.remote_field.name
+        else:
+            return "from_"+field.field.remote_field.name
 
-    return ret
+    elif attr == 'related_name':
+        if field.rel.related_name is not None:
+            # Case where a related_name has specifically being defined.
+            return field.rel.related_name
+
+        elif field.field.related_model == field.field.model:
+            # Case autogen related_name of a model related to itself
+            return field.field.model.__name__.lower()+"_set"
+        else:
+            # Case autogen related_name of a model related to another model.
+            return field.through.__name__.lower()+"_set"
+
+    elif attr == 'through_model':
+        return field.through.__name__
+
+    elif attr == 'related_model':
+        return field.field.related_model.__name__
 
 
 def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
@@ -131,25 +141,22 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             pass
     """
 
-    """
-    WORK IN PROGRESS
+
     ctrl = False
-
-    ret = M2MSerializerAux(cls_attrs['Meta'])
-
-    print(ret)
+    for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created
+            and f in meta_attrs['fields']]:
+        field = eval("model.{}".format(f.name))
 
     for field in meta_attrs['fields']:
 
         try:
             print(field)
-            model_field = endpoint.model._meta.get_field(field)
-            print(model_field.name)
             #print(model_field.model)
             #print(model_field.related_model)
-            if model_field.name == 'children':
-                cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=True)
+            if field.field.name == 'children':
+                cls_attrs[field.field..name] = RecursiveField(required=False, allow_null=True, many=True)
 
+            """
             elif model_field.name[-4:] == "_set":
 
                 # TODO -> CREATE SERIALIZER
@@ -157,7 +164,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                                                                     allow_null=True)  # No cal especificar source = "productingredient_set" pq ja es igual al field name.
 
 
-
+            
 
 
 
@@ -169,10 +176,10 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 # cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=False)
                 #print(model_field.name)
                 cls_attrs[model_field.name] = serializer_factory(model=model_field.related_model)
+            """
 
         except FieldDoesNotExist:
             pass
-    """
     """
     INITIAL APPROACH
     ctrl = False
@@ -215,7 +222,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     else:
         return type(cls_name, (NullToDefaultMixin, WritableNestedModelSerializer, ), cls_attrs)
     """
-    
+
     return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
 
 

@@ -145,10 +145,10 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     for f in [f for f in endpoint.model._meta.get_fields() if f.many_to_one and not f.auto_created and
               f.name in meta_attrs['fields']]:
         field = eval("endpoint.model.{}".format(f.name))
-
+        print(field.field.name)
         try:
             if field.field.name == 'children':
-                print(field.field.name)
+
                 cls_attrs[field.field.name] = RecursiveField(required=False, allow_null=True, many=True)
 
         except FieldDoesNotExist:

@@ -148,6 +148,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
         try:
             if field.field.name == 'children':
+                print(field.field.name)
                 cls_attrs[field.field.name] = RecursiveField(required=False, allow_null=True, many=True)
 
         except FieldDoesNotExist:

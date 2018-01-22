@@ -130,7 +130,7 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
-
+    print(type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs))
     return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
 
 

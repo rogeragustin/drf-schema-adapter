@@ -208,7 +208,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 f.name
                 for f in through_model._meta.get_fields()
                 if f.name != 'created_at' and f.name != 'updated_at' and f.name != 'id'
-                   and f.name != remote_field
+                   and f.name != M2MRelations(field,'related_field')
             ]
             print(through_fields)
 

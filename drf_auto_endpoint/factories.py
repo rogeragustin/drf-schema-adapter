@@ -131,6 +131,7 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
     print(type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs))
+
     return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
 
 
@@ -210,9 +211,11 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 if f.name != 'created_at' and f.name != 'updated_at' and f.name != 'id'
                    and f.name != M2MRelations(field,'related_field')
             ]
+            print("hola")
             print(through_fields)
 
             SubSerializer = related_serializer_factory(model=through_model, fields = through_fields)
+            print(SubSerializer)
 
             print (
                 "cls_attrs[field.field.name] = {0}(source='{1}', "
@@ -257,16 +260,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
 
-
-
-    ##print(cls_name)
-    #print(cls_attrs)
-    """
-    if ctrl == False:
-        return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)
-    else:
-        return type(cls_name, (NullToDefaultMixin, WritableNestedModelSerializer, ), cls_attrs)
-    """
 
     return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
 

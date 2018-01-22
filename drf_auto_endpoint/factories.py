@@ -94,7 +94,7 @@ def M2MRelations(field, attr):
 
 
 
-def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None, remote_field=None):
+def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     if model is not None:
         assert endpoint is None, "You cannot specify both a model and an endpoint"
         from .endpoints import Endpoint
@@ -104,13 +104,6 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
 
     if base_class is None:
         base_class = endpoint.base_serializer
-
-    fields = [
-        f.name
-        for f in endpoint.model._meta.get_fields()
-        if f.name != 'created_at' and f.name != 'updated_at' and f.name != 'id'
-           and f.name != remote_field
-    ]
 
     meta_attrs = {
         'model': endpoint.model,
@@ -210,11 +203,16 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             through_model_name = M2MRelations(field, 'through_model')
             app = endpoint.model._meta.app_label
             exec("from {0}.models import {1}".format(app,through_model_name))
-            print(type(eval(through_model_name)))
-            #print(eval(through_model))
-            print("from {0}.models import {1}".format(app,through_model_name))
-            print(field.field.remote_field.name)
-            related_serializer_factory(model=through_model, remote_field = field.field.remote_field.name)
+            through_model = eval(through_model_name)
+            through_fields = [
+                f.name
+                for f in through_model._meta.get_fields()
+                if f.name != 'created_at' and f.name != 'updated_at' and f.name != 'id'
+                   and f.name != remote_field
+            ]
+            print(through_fields)
+
+            related_serializer_factory(model=through_model, fields = through_fields)
 
             print (
                 "cls_attrs[field.field.name] = {0}(source=M2MRelations(field, 'related_name'), "

@@ -142,6 +142,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     """
 
     # Send neseted recursive field with all the info in the case of a "children" file (typical for categories)
+    print(Meta.fields)
+    print(model) if model != None else None
     for f in [f for f in Meta.fields if (f.many_to_many or f.foreign_key) and not f.auto_created]:
         field = eval("model.{}".format(f.name))
 

@@ -208,7 +208,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
         try:
             through_model_name = M2MRelations(field, 'through_model')
-            from endpoint.model._meta.app_label import eval(through_model_name)
+            exec("from endpoint.model._meta.app_label import through_model_name")
             through_model = eval(through_model_name)
             print(through_model)
             print(field.field.remote_field.name)

@@ -94,6 +94,47 @@ def M2MRelations(field, attr):
 
 
 
+def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
+    if model is not None:
+        assert endpoint is None, "You cannot specify both a model and an endpoint"
+        from .endpoints import Endpoint
+        endpoint = Endpoint(model=model)
+    else:
+        assert endpoint is not None, "You have to specify either a model or an endpoint"
+
+    if base_class is None:
+        base_class = endpoint.base_serializer
+
+    meta_attrs = {
+        'model': endpoint.model,
+        'fields': fields if fields is not None else endpoint.get_fields_for_serializer()
+    }
+    meta_parents = (object, )
+    if hasattr(base_class, 'Meta'):
+        meta_parents = (base_class.Meta, ) + meta_parents
+
+    Meta = type('Meta', meta_parents, meta_attrs)
+
+    cls_name = '{}Serializer'.format(endpoint.model.__name__)
+    cls_attrs = {
+        'Meta': Meta,
+    }
+
+    for meta_field in meta_attrs['fields']:
+        if meta_field not in base_class._declared_fields:
+            try:
+                model_field = endpoint.model._meta.get_field(meta_field)
+                if isinstance(model_field, OneToOneRel):
+                    cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
+                elif isinstance(model_field, ManyToOneRel)
+                    cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+            except FieldDoesNotExist:
+                cls_attrs[meta_field] = serializers.ReadOnlyField()
+
+    return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
+
+
+
 def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
     if model is not None:
@@ -160,7 +201,15 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
         try:
 
-            #child_serializer_factory(endpoint=None, fields=None, base_class=None, model=None)
+            through_model = eval(M2MRelations(field, 'through_model'))
+            through_model_fields = [
+                f.name
+                for f in through_model._meta.get_fields()
+                if f.name != 'created_at' and f.name != 'updated_at' and f.name != 'id'
+                and f.name != Product.ingredients.field.remote_field.name
+            ]
+
+            related_serializer_factory(endpoint=None, fields=through_model_fields, base_class=None, model=through_model)
 
             print (
                 "cls_attrs[field.field.name] = {0}(source=M2MRelations(field, 'related_name'), "
@@ -170,29 +219,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 "cls_attrs[field.field.name] = {0}(source=M2MRelations(field, 'related_name'), "
                 "many=True, required=False, allow_null=True)".format(M2MRelations(field,'related_serializer'))
             )
-
-
-            """
-            elif model_field.name[-4:] == "_set":
-
-                # TODO -> CREATE SERIALIZER
-                cls_attrs[model_field.name] = ProductIngredientSerializer(many=True, required=False,
-                                                                    allow_null=True)  # No cal especificar source = "productingredient_set" pq ja es igual al field name.
-
-
-            
-
-
-
-            elif str(model_field.get_internal_type()) == "ManyToMany" and \
-                    model_field.model != model_field.related_model and \
-                    "from_" not in model_field.name and "to_" not in model_field.name:
-                ctrl = True
-                # cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
-                # cls_attrs[model_field.name] = RecursiveField(required=False, allow_null=True, many=False)
-                #print(model_field.name)
-                cls_attrs[model_field.name] = serializer_factory(model=model_field.related_model)
-            """
 
         except FieldDoesNotExist:
             pass

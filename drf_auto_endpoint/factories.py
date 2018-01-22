@@ -217,6 +217,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             SubSerializer = related_serializer_factory(model=through_model, fields = through_fields)
             print("hola")
             print(SubSerializer)
+            test = Product
+            print(Product)
 
             print (
                 "cls_attrs[field.field.name] = {0}(source='{1}', "

@@ -94,7 +94,7 @@ def M2MRelations(field, attr):
 
 
 
-def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None, remote_field):
+def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None, remote_field=None):
     if model is not None:
         assert endpoint is None, "You cannot specify both a model and an endpoint"
         from .endpoints import Endpoint

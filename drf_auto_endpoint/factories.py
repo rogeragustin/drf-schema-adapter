@@ -140,11 +140,22 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         except FieldDoesNotExist:
             pass
     """
-
+    # Special treatment for particular cases of foreignkey fields.
     # Send neseted recursive field with all the info in the case of a "children" file (typical for categories)
-    print(Meta.fields)
-    print(endpoint.model)
-    for f in [f for f in endpoint.model._meta.get_fields() if (f.many_to_many) and not f.auto_created]:
+    for f in [f for f in endpoint.model._meta.get_fields() if f.many_to_one and not f.auto_created and
+              f.name in meta_attrs['fields']]:
+        field = eval("endpoint.model.{}".format(f.name))
+
+        try:
+            if field.field.name == 'children':
+                cls_attrs[field.field.name] = RecursiveField(required=False, allow_null=True, many=True)
+
+        except FieldDoesNotExist:
+            pass
+
+    # Special treatment for many to many fields.
+    for f in [f for f in endpoint.model._meta.get_fields() if f.many_to_many and not f.auto_created and
+              f.name in meta_attrs['fields']]:
         field = eval("endpoint.model.{}".format(f.name))
 
         try:

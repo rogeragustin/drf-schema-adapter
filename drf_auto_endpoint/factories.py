@@ -145,7 +145,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     print(Meta.fields)
     print(endpoint.model)
     for f in [f for f in endpoint.model._meta.get_fields() if (f.many_to_many) and not f.auto_created]:
-        field = eval("model.{}".format(f.name))
+        field = eval("endpoint.model.{}".format(f.name))
 
         try:
             print(field)

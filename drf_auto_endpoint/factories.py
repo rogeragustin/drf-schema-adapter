@@ -126,7 +126,7 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
                 model_field = endpoint.model._meta.get_field(meta_field)
                 if isinstance(model_field, OneToOneRel):
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
-                elif isinstance(model_field, ManyToOneRel)
+                elif isinstance(model_field, ManyToOneRel):
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()

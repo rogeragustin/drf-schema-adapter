@@ -212,15 +212,15 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             ]
             print(through_fields)
 
-            import related_serializer_factory(model=through_model, fields = through_fields)
+            SubSerializer = related_serializer_factory(model=through_model, fields = through_fields)
 
             print (
                 "cls_attrs[field.field.name] = {0}(source=M2MRelations(field, 'related_name'), "
-                "many=True, required=False, allow_null=True)".format(M2MRelations(field, 'related_serializer'))
+                "many=True, required=False, allow_null=True)".format(SubSerializer)
             )
             exec(
                 "cls_attrs[field.field.name] = {0}(source=M2MRelations(field, 'related_name'), "
-                "many=True, required=False, allow_null=True)".format(M2MRelations(field,'related_serializer'))
+                "many=True, required=False, allow_null=True)".format(SubSerializer)
             )
 
         except FieldDoesNotExist:

@@ -223,9 +223,10 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 "many=True, required=False, allow_null=True)".format(SubSerializer.__name__, M2MRelations(field, 'related_name'))
             )
 
-            cls_attrs[field.field.name] = SubSerializer("source='{0}', "
-                                               "many=True, required=False, allow_null=True".format(
-                M2MRelations(field, 'related_name')))
+            #cls_attrs[field.field.name] = SubSerializer("source='{0}', many=True, required=False, allow_null=True".format(
+            #    M2MRelations(field, 'related_name')))
+            cls_attrs[field.field.name] = SubSerializer(source=M2MRelations(field, 'related_name'), many=True, required=False, allow_null=True")
+
             print("Pollo")
             print(cls_attrs[field.field.name])
 

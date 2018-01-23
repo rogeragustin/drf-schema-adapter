@@ -217,6 +217,7 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
         meta_parents = (base_class.Meta, ) + meta_parents
 
     print ("----------")
+    print(model.__name__)
     print(meta_attrs['fields'])
     Meta = type('Meta', meta_parents, meta_attrs)
 

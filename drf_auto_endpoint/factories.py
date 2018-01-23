@@ -123,7 +123,7 @@ def create(self, validated_data):
         if vars()[f.name + "_data"] is not None:
             for rel_model_instance in vars()[f.name + "_data"]:
                 through_model_name = M2MRelations(field, 'through_model')
-                app = endpoint.model._meta.app_label
+                app = model._meta.app_label
                 exec ("from {0}.models import {1}".format(app, through_model_name))
                 exec (
                 "{0}.objects.create({1}={2}, **rel_model_instance)".format(through_model_name,

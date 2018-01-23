@@ -65,25 +65,28 @@ def M2MRelations(field, attr):
     elif attr == 'related_field':
         #TODO que això no exploti en el cas que l'usuari hagi definit un related_name
         # Alt: no es poden definir related_name i sempre s'ha de treballar en automàtic.
+        return field.field.remote_field.name
 
-        if field.field.related_model != field.field.model:
-            return field.field.remote_field.name
-        else:
-            #return "from_"+field.field.remote_field.name
-            return field.field.remote_field.name
-            #return field.field.remote_field.name
+        #if field.field.related_model != field.field.model:
+        #    return field.field.remote_field.name
+        #else:
+        #    #return "from_"+field.field.remote_field.name
+        #    return field.field.remote_field.name
+        #    #return field.field.remote_field.name
 
     elif attr == 'related_name':
-        if field.rel.related_name is not None:
+        if field.field.related_model == field.field.model:
+            # Case autogen related_name of a model related to itself
+            return eval("field.through.{}.field.remote_field.related_name".format(field.field.remote_field.name))
+            #return field.field.model.__name__.lower() + "_set"
+
+        elif field.rel.related_name is not None:
             # Case where a related_name has specifically being defined.
             return field.rel.related_name
 
-        elif field.field.related_model == field.field.model:
-            # Case autogen related_name of a model related to itself
-            return field.field.model.__name__.lower()+"_set"
         else:
             # Case autogen related_name of a model related to another model.
-            return field.through.__name__.lower()+"_set"
+            return field.through.__name__.lower() + "_set"
 
     elif attr == 'through_model':
         return field.through.__name__

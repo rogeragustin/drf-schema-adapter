@@ -216,6 +216,8 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
     if hasattr(base_class, 'Meta'):
         meta_parents = (base_class.Meta, ) + meta_parents
 
+    print ("----------")
+    print(meta_attrs['fields'])
     Meta = type('Meta', meta_parents, meta_attrs)
 
     cls_name = '{}Serializer'.format(endpoint.model.__name__)
@@ -310,7 +312,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
         except FieldDoesNotExist:
             pass
-    
+
     """
     INITIAL APPROACH
     ctrl = False

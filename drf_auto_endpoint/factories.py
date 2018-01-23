@@ -122,6 +122,7 @@ def create(self, validated_data):
 
         if vars()[f.name + "_data"] is not None:
             for rel_model_instance in vars()[f.name + "_data"]:
+                # Import the submodel before calling it.
                 through_model_name = M2MRelations(field, 'through_model')
                 app = model._meta.app_label
                 exec ("from {0}.models import {1}".format(app, through_model_name))
@@ -142,7 +143,7 @@ def create(self, validated_data):
 def update(self, instance, validated_data):
     model = self.Meta.model
 
-    # Pop data from validated.
+    # 1. Pop data from validated.
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
 
@@ -158,12 +159,15 @@ def update(self, instance, validated_data):
         if model._meta.get_field(item):
             setattr(instance, item, validated_data[item])
 
-    # Load previous data and either update it with the new one. In case no data existed, create a new record.
+    # 2. Load previous data and either update it with the new one. In case no data existed, create a new record.
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
 
-        # Load previous subinstance
-        submodel_instance = eval("{0}.objects.filter({1}=instance)".format(M2MRelations(field, 'through_model'),
+        # Load previous subinstance (previously import the submodel before calling it.)
+        through_model_name = M2MRelations(field, 'through_model')
+        app = model._meta.app_label
+        exec ("from {0}.models import {1}".format(app, through_model_name))
+        submodel_instance = eval("{0}.objects.filter({1}=instance)".format(through_model_name,
                                                                            M2MRelations(field, 'related_field')))
 
         # Set new content for intermediary model

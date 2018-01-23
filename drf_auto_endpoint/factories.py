@@ -256,6 +256,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         'model': endpoint.model,
         'fields': fields if fields is not None else endpoint.get_fields_for_serializer()
     }
+    print(meta_attrs['fields'])
     meta_parents = (object, )
     if hasattr(base_class, 'Meta'):
         meta_parents = (base_class.Meta, ) + meta_parents

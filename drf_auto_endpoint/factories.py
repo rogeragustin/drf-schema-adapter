@@ -69,7 +69,7 @@ def M2MRelations(field, attr):
         if field.field.related_model != field.field.model:
             return field.field.remote_field.name
         else:
-            return "to_"+field.field.remote_field.name
+            return "from_"+field.field.remote_field.name
             #return field.field.remote_field.name
 
     elif attr == 'related_name':
@@ -280,7 +280,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     for f in [f for f in list(filter(lambda x: x!= '__str__', meta_attrs['fields'])) if endpoint.model._meta.get_field(f).name == 'children']:
         try:
             cls_attrs[endpoint.model._meta.get_field(f).name] = RecursiveField(required=False, allow_null=True, many=True)
-            print(endpoint.model._meta.get_field(f).name)
         except FieldDoesNotExist:
             pass
     
@@ -290,7 +289,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         field = eval("endpoint.model.{}".format(f.name))
 
         try:
-            print(endpoint.model.__name__)
             print(field.field)
             through_model_name = M2MRelations(field, 'through_model')
             app = endpoint.model._meta.app_label

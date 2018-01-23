@@ -69,7 +69,8 @@ def M2MRelations(field, attr):
         if field.field.related_model != field.field.model:
             return field.field.remote_field.name
         else:
-            return "to_"+field.field.remote_field.name
+            #return "to_"+field.field.remote_field.name
+            return field.field.remote_field.name
 
     elif attr == 'related_name':
         if field.rel.related_name is not None:

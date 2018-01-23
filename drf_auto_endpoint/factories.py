@@ -227,10 +227,12 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                                                "many=True, required=False, allow_null=True".format(
                 SubSerializer, M2MRelations(field, 'related_name')))
 
+            print(cls_attrs[field.field.name])
+
             #cls_attrs[field.field.name] = eval("{0}(source='{1}', "
             #                                   "many=True, required=False, allow_null=True)".format(
             #    SubSerializer, M2MRelations(field, 'related_name'))
-                                               )
+            #                                   )
             #cls_attrs[field.field.name] = eval("{0}(source='{1}', "
             #    "many=True, required=False, allow_null=True)".format(SubSerializer.__name__, M2MRelations(field, 'related_name'))
             #)

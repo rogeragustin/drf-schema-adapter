@@ -324,7 +324,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 if f.name != 'created_at' and f.name != 'updated_at' and f.name != 'id'
                    and f.name != M2MRelations(field,'related_field')
             ]
-            through_field.append('__str__')
+            through_fields.append('__str__')
 
             SubSerializer = related_serializer_factory(model=through_model, fields = through_fields)
 

@@ -189,6 +189,9 @@ def update(self, instance, validated_data):
     # 2. Load previous data and either update it with the new one. In case no data existed, create a new record.
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
+        print(************)
+        print(field)
+        print( ** ** ** ** ** ** )
 
         # Delete subinstances that are not present anymore
         through_model_name = M2MRelations(field, 'through_model')

@@ -330,7 +330,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
             print("********")
             print(field.field.name)
-            cls_attrs[field.field.name] = SubSerializer(source=M2MRelations(field, 'source'), many=True, required=False, allow_null=True)
+            cls_attrs[field.field.name] = SubSerializer(source=M2MRelations(field, 'related_name'), many=True, required=False, allow_null=True)
 
             cls_attrs["create"] = create
             cls_attrs["update"] = update

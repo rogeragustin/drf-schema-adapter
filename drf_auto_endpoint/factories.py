@@ -190,32 +190,54 @@ def update(self, instance, validated_data):
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
 
-        # Load previous subinstance (previously import the submodel before calling it.)
+        # Delete subinstances that are not present anymore
         through_model_name = M2MRelations(field, 'through_model')
         app = model._meta.app_label
         exec ("from {0}.models import {1}".format(app, through_model_name))
-        submodel_instance = eval("{0}.objects.filter({1}=instance)".format(through_model_name,
-                                                                           M2MRelations(field, 'related_field')))
+        field_queryset = eval("{0}.objects.filter({1}=instance)".format(M2MRelations(field, 'through_model'),
+                                                                        M2MRelations(field, 'related_field')))
+        for i in field_queryset:
+            i_id = getattr(getattr(i, M2MRelations(field, 'related_field_target')), 'id')
+            field_validated_data_ids = [getattr(k[M2MRelations(field, 'related_field_target')], 'id') for k in
+                                        eval(f.name + "_data")]
+            if i_id not in field_validated_data_ids:
+                exec (
+                    "{0}.objects.filter({1}={2}).delete()".format(
+                        M2MRelations(field, 'through_model'),
+                        M2MRelations(field, 'related_field_target'),
+                        i_id
+                    )
+                )
 
         # Set new content for intermediary model
         if eval(f.name + "_data") is not None:
+            print(f.name)
             for rel_model_instance in eval(f.name + "_data"):
-                if submodel_instance.exists():
-                    b = eval("rel_model_instance['{}']".format(M2MRelations(field, 'related_field_target')))
+                container_id = instance.id
+                other_id = eval("rel_model_instance['{}']".format(M2MRelations(field, 'related_field_target')))
+                field_instance = eval("{0}.objects.filter({1}=container_id, {2}=other_id)".format(
+                    M2MRelations(field, 'through_model'),
+                    M2MRelations(field, 'related_field'),
+                    M2MRelations(field, 'related_field_target')
+                ))
+                # print("+-+-+-+-+")
+                # print(eval(f.name+"_data"))
+                # print(list(field_instance.values()))
+                if field_instance:
+                    # TODO Fer que es miri també si hi ha algun element diferent entre la nova info de f.name_data i la queryset anterior.
                     exec (
-                        "{0}.objects.filter({3}=instance, id=b.id).update({3}={2},updated_at=datetime.now(), "
-                        "**rel_model_instance)".
-                            format(M2MRelations(field, 'through_model'),
-                                   M2MRelations(field, 'source'),
-                                   'instance',
-                                   M2MRelations(field, 'related_field'),
-                                   M2MRelations(field, 'related_field_target'))
+                        "field_instance.update({0}={1}, updated_at=datetime.now(), **rel_model_instance)".
+                            format(
+                            M2MRelations(field, 'related_field'),
+                            'instance'
+
+                        )
                     )
                 else:
-                    exec("{0}.objects.create({1}={2}, **rel_model_instance)".format(
-                         M2MRelations(field, 'through_model'),
-                         M2MRelations(field, 'related_field'),
-                         'instance'))
+                    exec ("{0}.objects.create({1}={2}, **rel_model_instance)".format(
+                        M2MRelations(field, 'through_model'),
+                        M2MRelations(field, 'related_field'),
+                        'instance'))
 
     instance.save()
     return instance

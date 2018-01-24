@@ -63,22 +63,44 @@ def M2MRelations(field, attr):
         return field.field.name
 
     elif attr == 'related_field':
-        #TODO que això no exploti en el cas que l'usuari hagi definit un related_name
+        # TODO que això no exploti en el cas que l'usuari hagi definit un related_name
         # Alt: no es poden definir related_name i sempre s'ha de treballar en automàtic.
         return field.field.remote_field.name
 
-        #if field.field.related_model != field.field.model:
+        # if field.field.related_model != field.field.model:
         #    return field.field.remote_field.name
-        #else:
+        # else:
         #    #return "from_"+field.field.remote_field.name
         #    return field.field.remote_field.name
         #    #return field.field.remote_field.name
+
+    elif attr == 'related_field_target':
+        if field.field.related_model != field.field.model:
+            return field.field.related_model.__name__.lower()
+        else:
+            return "from_"+field.field.related_model.__name__.lower()
+            #return field.field.remote_field.name
+            #return field.field.remote_field.name
 
     elif attr == 'related_name':
         if field.field.related_model == field.field.model:
             # Case autogen related_name of a model related to itself
             return eval("field.through.{}.field.remote_field.related_name".format(field.field.remote_field.name))
-            #return field.field.model.__name__.lower() + "_set"
+            # return field.field.model.__name__.lower() + "_set"
+
+        elif field.rel.related_name is not None:
+            # Case where a related_name has specifically being defined.
+            return field.rel.related_name
+
+        else:
+            # Case autogen related_name of a model related to another model.
+            return field.through.__name__.lower() + "_set"
+
+    elif attr == 'source':
+        if field.field.related_model == field.field.model:
+            # Case autogen related_name of a model related to itself
+            # return eval("field.through.{}.field.remote_field.related_name".format(field.field.remote_field.name))
+            return field.field.model.__name__.lower() + "_set"
 
         elif field.rel.related_name is not None:
             # Case where a related_name has specifically being defined.
@@ -95,7 +117,7 @@ def M2MRelations(field, attr):
         return field.field.related_model.__name__
 
     elif attr == 'related_serializer':
-        return field.through.__name__+"Serializer"
+        return field.through.__name__ + "Serializer"
 
 
 def create(self, validated_data):
@@ -179,18 +201,16 @@ def update(self, instance, validated_data):
         if eval(f.name + "_data") is not None:
             for rel_model_instance in eval(f.name + "_data"):
                 if submodel_instance.exists():
-                    print (
-                        "{0}.objects.filter({3}=instance).update({1}={2},updated_at=datetime.now(), **rel_model_instance)".
-                            format(M2MRelations(field, 'through_model'),
-                                   M2MRelations(field, 'related_field'),
-                                   'instance',
-                                   M2MRelations(field, 'related_field')))
+                    b = eval("rel_model_instance['{}']".format(M2MRelations(field, 'related_field_target')))
                     exec (
-                        "{0}.objects.filter({3}=instance).update({1}={2},updated_at=datetime.now(), **rel_model_instance)".
-                        format(M2MRelations(field, 'through_model'),
-                               M2MRelations(field, 'related_field'),
-                               'instance',
-                               M2MRelations(field, 'related_field')))
+                        "{0}.objects.filter({3}=instance, id=b.id).update({3}={2},updated_at=datetime.now(), "
+                        "**rel_model_instance)".
+                            format(M2MRelations(field, 'through_model'),
+                                   M2MRelations(field, 'source'),
+                                   'instance',
+                                   M2MRelations(field, 'related_field'),
+                                   M2MRelations(field, 'related_field_target'))
+                    )
                 else:
                     exec("{0}.objects.create({1}={2}, **rel_model_instance)".format(
                          M2MRelations(field, 'through_model'),
@@ -304,12 +324,13 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 if f.name != 'created_at' and f.name != 'updated_at' and f.name != 'id'
                    and f.name != M2MRelations(field,'related_field')
             ]
+            through_model.append('__str__')
 
             SubSerializer = related_serializer_factory(model=through_model, fields = through_fields)
 
             print("********")
             print(field.field.name)
-            cls_attrs[field.field.name] = SubSerializer(source=M2MRelations(field, 'related_name'), many=True, required=False, allow_null=True)
+            cls_attrs[field.field.name] = SubSerializer(source=M2MRelations(field, 'source'), many=True, required=False, allow_null=True)
 
             cls_attrs["create"] = create
             cls_attrs["update"] = update

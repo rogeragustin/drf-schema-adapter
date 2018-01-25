@@ -189,9 +189,6 @@ def update(self, instance, validated_data):
     # 2. Load previous data and either update it with the new one. In case no data existed, create a new record.
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
-        print("************")
-        print(field)
-        print("************")
 
         # Delete subinstances that are not present anymore
         through_model_name = M2MRelations(field, 'through_model')
@@ -214,7 +211,6 @@ def update(self, instance, validated_data):
 
         # Set new content for intermediary model
         if eval(f.name + "_data") is not None:
-            print(f.name)
             for rel_model_instance in eval(f.name + "_data"):
                 container_id = instance.id
                 other_id = eval("rel_model_instance['{}']".format(M2MRelations(field, 'related_field_target')))
@@ -265,9 +261,7 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
     if hasattr(base_class, 'Meta'):
         meta_parents = (base_class.Meta, ) + meta_parents
 
-    print ("----------")
-    print(model.__name__)
-    print(meta_attrs['fields'])
+
     Meta = type('Meta', meta_parents, meta_attrs)
 
     cls_name = '{}Serializer'.format(endpoint.model.__name__)
@@ -302,13 +296,11 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     if base_class is None:
         base_class = endpoint.base_serializer
 
-    print(endpoint.model.__name__)
-
     meta_attrs = {
         'model': endpoint.model,
         'fields': fields if fields is not None else endpoint.get_fields_for_serializer()
     }
-    print(meta_attrs['fields'])
+
     meta_parents = (object, )
     if hasattr(base_class, 'Meta'):
         meta_parents = (base_class.Meta, ) + meta_parents
@@ -338,7 +330,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         field = eval("endpoint.model.{}".format(f.name))
 
         try:
-            print(field.field)
             through_model_name = M2MRelations(field, 'through_model')
             app = endpoint.model._meta.app_label
             exec("from {0}.models import {1}".format(app,through_model_name))
@@ -353,8 +344,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
             SubSerializer = related_serializer_factory(model=through_model, fields = through_fields)
 
-            print("********")
-            print(field.field.name)
             cls_attrs[field.field.name] = SubSerializer(source=M2MRelations(field, 'related_name'), many=True, required=False, allow_null=True)
 
             cls_attrs["create"] = create

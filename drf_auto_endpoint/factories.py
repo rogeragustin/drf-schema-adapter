@@ -219,9 +219,7 @@ def update(self, instance, validated_data):
                     M2MRelations(field, 'related_field'),
                     M2MRelations(field, 'related_field_target')
                 ))
-                # print("+-+-+-+-+")
-                # print(eval(f.name+"_data"))
-                # print(list(field_instance.values()))
+
                 if field_instance:
                     # TODO Fer que es miri també si hi ha algun element diferent entre la nova info de f.name_data i la queryset anterior.
                     exec (
@@ -317,7 +315,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     ######
     # Special treatment for particular cases of foreignkey fields.
     # Send neseted recursive field with all the info in the case of a "children" file (typical for categories)
-
+    print(meta_attrs['fields'])
     for f in [f for f in list(filter(lambda x: x!= '__str__', meta_attrs['fields'])) if endpoint.model._meta.get_field(f).name == 'children']:
         try:
             cls_attrs[endpoint.model._meta.get_field(f).name] = RecursiveField(required=False, allow_null=True, many=True)

@@ -383,7 +383,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
 
-
+    print(type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs))
     return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
 
 
@@ -418,7 +418,6 @@ def pagination_factory(endpoint):
         raise ImproperlyConfigured('base_pagination_class needs to be a subclass of one of the following:'
                                    'PageNumberPagination, LimitOffsetPagination, CursorPagination')
 
-    print(type(pg_cls_name, (BasePagination, ), pg_cls_attrs))
     return type(pg_cls_name, (BasePagination, ), pg_cls_attrs)
 
 

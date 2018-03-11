@@ -383,7 +383,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
 
-    print(type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs))
     return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
 
 
@@ -475,7 +474,7 @@ def viewset_factory(endpoint):
         cls_attrs['pagination_class'] = pagination_factory(endpoint)
 
     rv = type(cls_name, (endpoint.get_base_viewset(),), cls_attrs)
-    print(rv)
+    print((cls_name,cls_attrs))
 
     black_list = dir(BaseEndpoint)
     for method_name in dir(endpoint):

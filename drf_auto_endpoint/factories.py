@@ -475,6 +475,7 @@ def viewset_factory(endpoint):
         cls_attrs['pagination_class'] = pagination_factory(endpoint)
 
     rv = type(cls_name, (endpoint.get_base_viewset(),), cls_attrs)
+    print(rv)
 
     black_list = dir(BaseEndpoint)
     for method_name in dir(endpoint):

@@ -329,6 +329,8 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
         try:
             through_model_name = M2MRelations(field, 'through_model')
+            print(field)
+            print(through_model_name)
             app = endpoint.model._meta.app_label
             exec("from {0}.models import {1}".format(app,through_model_name))
             through_model = eval(through_model_name)
@@ -351,23 +353,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         except FieldDoesNotExist:
             pass
 
-    """
-    INITIAL APPROACH
-    ctrl = False
-    for field in meta_attrs['fields']:
-        try:
-            model_field = endpoint.model._meta.get_field(field)
-            if model_field.name == 'children' or str(model_field.get_internal_type()) == "ForeignKey" \
-                    or str(model_field.get_internal_type()) == "ManyToManyField":
-                nested_serializer = True
-                serializer_factory(model=model_field.related_model)
-
-                cls_attrs[model_field.name] = '{}Serializer()'.format(model_field.related_model.__name__)
-                cls_attrs[model_field.name] = serializers.StringRelatedField(many=False)
-
-        except FieldDoesNotExist:
-            pass
-    """
     ######
     # END - ADDED CODE
     ######
@@ -474,7 +459,7 @@ def viewset_factory(endpoint):
         cls_attrs['pagination_class'] = pagination_factory(endpoint)
 
     rv = type(cls_name, (endpoint.get_base_viewset(),), cls_attrs)
-    
+
     black_list = dir(BaseEndpoint)
     for method_name in dir(endpoint):
         if method_name not in black_list:

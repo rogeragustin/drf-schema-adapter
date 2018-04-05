@@ -132,14 +132,17 @@ def create(self, validated_data):
         # Assign relfield_data = None
         exec ("{0}{1} = {2}".format(f.name, "_data", None))  # E.g: ingredients_data = None
 
-        if validated_data.get(M2MRelations(field, 'related_name'), None) is not None:
+        #if validated_data.get(M2MRelations(field, 'related_name'), None) is not None:
+        if M2MRelations(field, 'related_name') in validated_data.keys():
             exec (
             "{0}{1} = validated_data.pop('{2}')".format(f.name, "_data", M2MRelations(field, 'related_name')))
             # E.g:
             # if validated_data.get("productingredient_set", None) is not None:
             #    ingredients_data = validated_data.pop('productingredient_set')
+        else:
+            "{0}{1} = None".format(f.name, "_data")
 
-    # 2. Create an instance of the model with the base validated_data
+            # 2. Create an instance of the model with the base validated_data
     model_instance = model.objects.create(**validated_data)
     # E.g: product = Product.objects.create(**validated_data)
 
@@ -177,10 +180,12 @@ def update(self, instance, validated_data):
         # Assign relfield_data = None
         exec ("{0}{1} = {2}".format(f.name, "_data", None))  # E.g: ingredients_data = None
 
-        # relfield_data = validated_data.pop(relfield)
-        if validated_data.get(M2MRelations(field, 'related_name'), None) is not None:
+        #if validated_data.get(M2MRelations(field, 'related_name'), None) is not None:
+        if M2MRelations(field, 'related_name') in validated_data.keys():
             exec (
                 "{0}{1} = validated_data.pop('{2}')".format(f.name, "_data", M2MRelations(field, 'related_name')))
+        else:
+            "{0}{1} = None".format(f.name, "_data")
 
     for item in validated_data:
         if model._meta.get_field(item):

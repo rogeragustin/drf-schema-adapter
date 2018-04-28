@@ -67,7 +67,9 @@ class AutoMetadataMixin(object):
         adapter = import_string(settings.METADATA_ADAPTER)()
         if endpoint is None:
             fields_metadata = []
-
+            print("##################")
+            print("lalalala")
+            print("##################")
             for field in view.get_serializer_class().Meta.fields:
                 print(field)
                 if field in {'id', '__str__'}:

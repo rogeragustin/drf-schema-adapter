@@ -69,6 +69,7 @@ class AutoMetadataMixin(object):
             fields_metadata = []
 
             for field in view.get_serializer_class().Meta.fields:
+                print(field)
                 if field in {'id', '__str__'}:
                     continue
 

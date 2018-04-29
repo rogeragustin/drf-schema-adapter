@@ -113,6 +113,8 @@ class AutoMetadataMixin(object):
                 except AttributeError:
                     metadata[meta_info.attr] = meta_info.default
 
+        print(metadata)
+
         return adapter(metadata)
 
 

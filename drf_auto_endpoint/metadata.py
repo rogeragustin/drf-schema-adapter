@@ -116,15 +116,13 @@ class AutoMetadataMixin(object):
                         try:
                             print("Request:")
                             print(request)
-                            print(dir(request))
-                            print(method(request))
+                            print(request.data)
                             metadata[meta_info.attr] = method(request)
 
                         except TypeError:
                             print("Request Type Error:")
                             print(request)
-                            print(dir(request))
-                            print(method())
+                            print(request.data)
                             metadata[meta_info.attr] = method()
 
                     else:

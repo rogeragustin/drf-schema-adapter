@@ -114,7 +114,9 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
     print(":(")
     if model:
         try:
+            print(field_instance.label)
             model_field = model._meta.get_field(field_instance.source)
+
         except FieldDoesNotExist:
             pass
     print(":(")

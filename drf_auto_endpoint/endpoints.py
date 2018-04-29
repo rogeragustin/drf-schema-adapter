@@ -172,6 +172,7 @@ class BaseEndpoint(object):
         print(self.fields)
         if self.fields is None:
             if self.serializer is not None:
+                print(self.serializer.Meta.fields)
                 return self.serializer.Meta.fields
 
             self.fields = tuple([f for f in get_all_field_names(self.model)

@@ -79,7 +79,7 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
             print(read_only)
             if not isinstance(field_instance, serializers.ManyRelatedField):
                 read_only = True
-    print(":(")
+
     rv = {
         'key': name,
         'type': settings.WIDGET_MAPPING[field_instance.__class__.__name__],
@@ -95,7 +95,6 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
         'extra': {},
         'translated': name in translated_fields
     }
-    print(rv)
 
     if fields_annotation and name in fields_annotation:
         if 'placeholder' in fields_annotation[name]:
@@ -105,6 +104,7 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
     if field_instance.help_text is not None and 'help' not in rv['ui']:
         rv['ui']['help'] = field_instance.help_text
 
+    print(":(")
     default = field_instance.default
     model_field = None
     if model:

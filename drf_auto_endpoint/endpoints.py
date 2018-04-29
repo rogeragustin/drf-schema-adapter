@@ -241,7 +241,7 @@ class BaseEndpoint(object):
             print(cont)
             cont += 1
             print(field)
-            self._get_field_dict(field)
+            #self._get_field_dict(field)
 
         return [
             self._get_field_dict(field)

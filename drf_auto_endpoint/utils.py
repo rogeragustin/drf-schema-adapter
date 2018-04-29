@@ -55,12 +55,12 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
 
     serializer_instance = serializer()
     name = field['name'] if isinstance(field, dict) else field
-    print(name)
-    print("1 TRY:")
-    print(serializer_instance)
-    print(serializer_instance.fields)
-    #print(serializer_instance.get_fields())
-    print(serializer_instance.fields[name])
+#    print(name)
+#    print("1 TRY:")
+#    print(serializer_instance)
+#    print(serializer_instance.fields)
+#    print(serializer_instance.get_fields())
+#    print(serializer_instance.fields[name])
     try:
         field_instance = serializer_instance.fields[name]
         print("1 TRY PASS:")
@@ -74,7 +74,7 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
     if not read_only and field_instance.read_only:
         if not isinstance(field_instance, serializers.ManyRelatedField):
             read_only = True
-
+    print(":(")
     rv = {
         'key': name,
         'type': settings.WIDGET_MAPPING[field_instance.__class__.__name__],
@@ -90,6 +90,7 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
         'extra': {},
         'translated': name in translated_fields
     }
+    print(rv)
 
     if fields_annotation and name in fields_annotation:
         if 'placeholder' in fields_annotation[name]:

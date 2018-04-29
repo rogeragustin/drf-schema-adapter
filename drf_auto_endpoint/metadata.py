@@ -114,8 +114,14 @@ class AutoMetadataMixin(object):
                         print("Method:")
                         print(method)
                         try:
+                            print("Request:")
+                            print(request)
                             metadata[meta_info.attr] = method(request)
+
                         except TypeError:
+                            print("Request Type Error:")
+                            print(request)
+
                             metadata[meta_info.attr] = method()
                     else:
                         metadata[meta_info.attr] = getattr(endpoint, meta_info.attr, meta_info.default)

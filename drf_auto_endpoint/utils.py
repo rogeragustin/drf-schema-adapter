@@ -101,10 +101,11 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
             rv['ui']['placeholder'] = fields_annotation[name]['placeholder']
         if 'help' in fields_annotation[name]:
             rv['ui']['help'] = fields_annotation[name]['help']
+    print(":(")
+
     if field_instance.help_text is not None and 'help' not in rv['ui']:
         rv['ui']['help'] = field_instance.help_text
 
-    print(":(")
     default = field_instance.default
     model_field = None
     if model:

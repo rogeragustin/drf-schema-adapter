@@ -111,6 +111,7 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
     # default = field_instance.default
     default = field_instance.default if hasattr(field_instance, 'help_text') else empty
     model_field = None
+    print(":(")
     if model:
         try:
             model_field = model._meta.get_field(field_instance.source)

@@ -176,8 +176,10 @@ class BaseEndpoint(object):
             self.fields = tuple([f for f in get_all_field_names(self.model)
                                  if f not in self.default_language_field_names and
                                  f not in self.get_exclude_fields()])
-            print([f for f in get_all_field_names(self.model)])
-            print([f for f in self.get_exclude_fields()])
+            aux = [f for f in get_all_field_names(self.model)]
+            aux2 = [f for f in self.get_exclude_fields()]
+            print(aux)
+            print(aux2)
             if self.extra_fields is not None:
                 self.fields += tuple(self.extra_fields)
             if self.include_str:

@@ -168,20 +168,14 @@ class BaseEndpoint(object):
         return self.exclude_fields
 
     def get_fields_for_serializer(self):
-        print("vecinito!!!!")
-        print(self.fields)
+
         if self.fields is None:
             if self.serializer is not None:
-                print(self.serializer.Meta.fields)
                 return self.serializer.Meta.fields
 
             self.fields = tuple([f for f in get_all_field_names(self.model)
                                  if f not in self.default_language_field_names and
                                  f not in self.get_exclude_fields()])
-            aux = [f for f in get_all_field_names(self.model)]
-            aux2 = [f for f in self.get_exclude_fields()]
-            print(aux)
-            print(aux2)
             if self.extra_fields is not None:
                 self.fields += tuple(self.extra_fields)
             if self.include_str:
@@ -236,7 +230,7 @@ class BaseEndpoint(object):
     def get_fields(self):
         print("holita!!!!")
         aux = [
-            field
+            self._get_field_dict(field)
             for field in self.get_fields_for_serializer()
         ]
         print(aux)

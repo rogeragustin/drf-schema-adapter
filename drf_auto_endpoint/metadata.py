@@ -116,10 +116,8 @@ class AutoMetadataMixin(object):
                         try:
                             print("Request:")
                             print(request)
-                            print(request.DATA)
                             print(request.FILES)
                             print(request.POST)
-                            print(request.QUERY_PARAMS)
                             print(request.user)
                             print(request.accepted_media_type)
                             print(request.accepted_renderer)
@@ -142,10 +140,8 @@ class AutoMetadataMixin(object):
                         except TypeError:
                             print("Request Type Error:")
                             print(request)
-                            print(request.DATA)
                             print(request.FILES)
                             print(request.POST)
-                            print(request.QUERY_PARAMS)
                             print(request.user)
                             print(request.accepted_media_type)
                             print(request.accepted_renderer)

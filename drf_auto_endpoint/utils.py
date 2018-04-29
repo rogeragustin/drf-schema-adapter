@@ -43,13 +43,6 @@ def get_validation_attrs(instance_field):
 
 
 def get_field_dict(field, serializer, translated_fields=None, fields_annotation=False, model=None):
-    print("Debuger 1")
-    print(field)
-    print(serializer)
-    print(translated_fields)
-    print(fields_annotation)
-    print(model)
-
     if translated_fields is None:
         translated_fields = []
 
@@ -63,11 +56,8 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
 #    print(serializer_instance.fields[name])
     try:
         field_instance = serializer_instance.fields[name]
-        print("1 TRY PASS:")
-        print(field_instance)
+
     except KeyError:
-        print("1 TRY FAIL:")
-        print({'key': name})
         return {'key': name}
 
     read_only = name == '__str__'
@@ -75,8 +65,6 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
     # Modification to allow dealing with serpy serializers, whose fields don't admit the property read_only.
     if  hasattr(field_instance, 'read_only'):
         if not read_only and field_instance.read_only:
-            print(":)")
-            print(read_only)
             if not isinstance(field_instance, serializers.ManyRelatedField):
                 read_only = True
 
@@ -111,15 +99,12 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
     # default = field_instance.default
     default = field_instance.default if hasattr(field_instance, 'help_text') else empty
     model_field = None
-    print(":(")
     if model:
         try:
             #model_field = model._meta.get_field(field_instance.source)
             model_field = model._meta.get_field(field_instance.source) if hasattr(field_instance, 'source') else model._meta.get_field(name)
-            print(model_field)
         except FieldDoesNotExist:
             pass
-    print(":(")
     if default and default != empty and not callable(default):
         rv['default'] = default
     elif default == empty and hasattr(model_field, 'default'):
@@ -128,7 +113,6 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
             if callable(default):
                 default = default()
             rv['default'] = default
-    print(":(")
     if isinstance(field_instance, (relations.PrimaryKeyRelatedField, relations.ManyRelatedField)):
         if model_field:
             related_model = model_field.related_model

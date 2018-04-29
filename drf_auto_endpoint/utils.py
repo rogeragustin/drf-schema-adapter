@@ -72,9 +72,10 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
 
     read_only = name == '__str__'
     print(":)")
-    if not read_only and field_instance.read_only:
-        if not isinstance(field_instance, serializers.ManyRelatedField):
-            read_only = True
+    print(read_only)
+#    if not read_only and field_instance.read_only:
+#        if not isinstance(field_instance, serializers.ManyRelatedField):
+#            read_only = True
     print(":(")
     rv = {
         'key': name,

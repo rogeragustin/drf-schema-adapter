@@ -169,6 +169,7 @@ class BaseEndpoint(object):
 
     def get_fields_for_serializer(self):
         print("vecinito!!!!")
+        print(self.fields)
         if self.fields is None:
             if self.serializer is not None:
                 return self.serializer.Meta.fields

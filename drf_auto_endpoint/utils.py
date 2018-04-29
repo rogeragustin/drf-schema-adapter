@@ -101,19 +101,22 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
             rv['ui']['placeholder'] = fields_annotation[name]['placeholder']
         if 'help' in fields_annotation[name]:
             rv['ui']['help'] = fields_annotation[name]['help']
-    print(":(")
 
-    if field_instance.help_text is not None and 'help' not in rv['ui']:
-        rv['ui']['help'] = field_instance.help_text
+    # Modification to allow dealing with serpy serializers, whose fields don't admit the property help_text.
+    if hasattr(field_instance, 'help_text'):
+        if field_instance.help_text is not None and 'help' not in rv['ui']:
+            rv['ui']['help'] = field_instance.help_text
 
-    default = field_instance.default
+    # Modification to allow dealing with serpy serializers, whose fields don't admit the property default.
+    # default = field_instance.default
+    default = field_instance.default if hasattr(field_instance, 'help_text') else empty
     model_field = None
     if model:
         try:
             model_field = model._meta.get_field(field_instance.source)
         except FieldDoesNotExist:
             pass
-
+    print(":(")
     if default and default != empty and not callable(default):
         rv['default'] = default
     elif default == empty and hasattr(model_field, 'default'):
@@ -122,7 +125,7 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
             if callable(default):
                 default = default()
             rv['default'] = default
-
+    print(":(")
     if isinstance(field_instance, (relations.PrimaryKeyRelatedField, relations.ManyRelatedField)):
         if model_field:
             related_model = model_field.related_model

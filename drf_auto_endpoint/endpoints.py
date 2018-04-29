@@ -237,8 +237,9 @@ class BaseEndpoint(object):
         ]
         print(aux)
         for field in self.get_fields_for_serializer():
+            print(field)
             self._get_field_dict(field)
-            
+
         return [
             self._get_field_dict(field)
             for field in self.get_fields_for_serializer()

@@ -230,7 +230,7 @@ class BaseEndpoint(object):
     def get_fields(self):
         print("holita!!!!")
         aux = [
-            field
+            self._get_field_dict(field)
             for field in self.get_fields_for_serializer()
         ]
         print(aux)

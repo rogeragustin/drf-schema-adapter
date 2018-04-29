@@ -57,6 +57,8 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
     name = field['name'] if isinstance(field, dict) else field
     print(name)
     print("1 TRY:")
+    print(serializer_instance)
+    print(serializer_instance.fields)
     print(serializer_instance.fields[name])
     try:
         field_instance = serializer_instance.fields[name]

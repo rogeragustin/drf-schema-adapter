@@ -241,7 +241,8 @@ class BaseEndpoint(object):
             print(cont)
             cont += 1
             print(field)
-            #self._get_field_dict(field)
+            get_field_dict(field, self.get_serializer(), self.get_translated_fields(),
+                           self.fields_annotation, self.model)
 
         return [
             self._get_field_dict(field)

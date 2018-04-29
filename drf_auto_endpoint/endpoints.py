@@ -224,6 +224,8 @@ class BaseEndpoint(object):
         )
 
     def _get_field_dict(self, field):
+        print("Debug 0:")
+        print(field)
         return get_field_dict(field, self.get_serializer(), self.get_translated_fields(),
                               self.fields_annotation, self.model)
 

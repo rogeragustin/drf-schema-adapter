@@ -44,6 +44,12 @@ def get_validation_attrs(instance_field):
 
 def get_field_dict(field, serializer, translated_fields=None, fields_annotation=False, model=None):
     print("Debuger 1")
+    print(field)
+    print(serializer)
+    print(translated_fields)
+    print(fields_annotation)
+    print(model)
+    
     if translated_fields is None:
         translated_fields = []
 

@@ -238,7 +238,7 @@ class BaseEndpoint(object):
         print(aux)
         cont = 0
         for field in aux:
-            print cont
+            print(cont)
             cont += 1
             print(field)
             self._get_field_dict(field)

@@ -58,7 +58,8 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
     print(name)
     print("1 TRY:")
     print(serializer_instance)
-    print(serializer_instance.get_fields())
+    print(serializer_instance.fields)
+    #print(serializer_instance.get_fields())
     print(serializer_instance.fields[name])
     try:
         field_instance = serializer_instance.fields[name]

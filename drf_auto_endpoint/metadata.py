@@ -106,6 +106,7 @@ class AutoMetadataMixin(object):
                 try:
                     print("Getter:")
                     print(meta_info.attr_type)
+                    print(GETTER)
                     if meta_info.attr_type == GETTER:
                         method = getattr(endpoint, 'get_{}'.format(meta_info.attr))
                         try:

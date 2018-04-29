@@ -236,7 +236,10 @@ class BaseEndpoint(object):
             for field in self.get_fields_for_serializer()
         ]
         print(aux)
+        cont = 0
         for field in aux:
+            print cont
+            cont += 1
             print(field)
             self._get_field_dict(field)
 

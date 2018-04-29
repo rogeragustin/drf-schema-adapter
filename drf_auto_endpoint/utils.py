@@ -71,12 +71,14 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
         return {'key': name}
 
     read_only = name == '__str__'
-    print(dir(field_instance))
-    if not read_only and field_instance.read_only:
-        print(":)")
-        print(read_only)
-        if not isinstance(field_instance, serializers.ManyRelatedField):
-            read_only = True
+
+    # Modification to allow dealing with serpy serializers, whose fields don't admit the property read_only.
+    if  hasattr(field_instance, 'read_only'):
+        if not read_only and field_instance.read_only:
+            print(":)")
+            print(read_only)
+            if not isinstance(field_instance, serializers.ManyRelatedField):
+                read_only = True
     print(":(")
     rv = {
         'key': name,

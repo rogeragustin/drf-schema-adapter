@@ -228,6 +228,7 @@ class BaseEndpoint(object):
                               self.fields_annotation, self.model)
 
     def get_fields(self):
+        print("holita!!!!")
         return [
             self._get_field_dict(field)
             for field in self.get_fields_for_serializer()

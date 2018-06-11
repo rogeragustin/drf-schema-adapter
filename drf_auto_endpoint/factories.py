@@ -486,6 +486,8 @@ def viewset_factory(endpoint):
     else:
         cls_attrs['pagination_class'] = pagination_factory(endpoint)
 
+    cls_attrs['list'] = list_method
+
     rv = type(cls_name, (endpoint.get_base_viewset(),), cls_attrs)
 
     black_list = dir(BaseEndpoint)

@@ -24,6 +24,9 @@ from rest_framework_recursive.fields import RecursiveField
 from drf_writable_nested import WritableNestedModelSerializer
 from datetime import datetime
 
+from drf_aggregates.renderers import AggregateRenderer
+from drf_aggregates.exceptions import AggregateException
+from rest_framework.response import Response
 
 
 class NullToDefaultMixin(object):
@@ -51,7 +54,9 @@ class NullToDefaultMixin(object):
 
         return super(NullToDefaultMixin, self).validate(data)
 
-
+#####################################
+### SERIALIZER FACTORY ###
+#####################################
 def M2MRelations(field, attr):
     """
     Given a M2M field and a desired output, return the string containing the result.
@@ -374,7 +379,9 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
     return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
 
-
+#####################################
+### PAGINATION FACTORY ###
+#####################################
 def pagination_factory(endpoint):
     pg_cls_name = '{}Pagination'.format(endpoint.model.__name__)
 
@@ -408,6 +415,23 @@ def pagination_factory(endpoint):
 
     return type(pg_cls_name, (BasePagination, ), pg_cls_attrs)
 
+
+#####################################
+### VIEWSET FACTORY ###
+#####################################
+def list_method(self, request, *args, **kwargs):
+    renderer = request.accepted_renderer
+    if isinstance(renderer, AggregateRenderer):
+        queryset = self.filter_queryset(self.get_queryset())
+        try:
+            data = request.accepted_renderer.render({
+                'queryset': queryset, 'request': request
+            })
+        except AggregateException as e:
+            # Raise other types of aggregate errors
+            return Response(str(e), status=400)
+        return Response(data, content_type=f'application/json')
+    return super().list(request, *args, **kwargs)
 
 def viewset_factory(endpoint):
     from .endpoints import BaseEndpoint

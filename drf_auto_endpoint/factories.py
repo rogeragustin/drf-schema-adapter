@@ -431,7 +431,9 @@ def list_method(self, request, *args, **kwargs):
             # Raise other types of aggregate errors
             return Response(str(e), status=400)
         return Response(data, content_type=f'application/json')
-    return super().list_method(request, *args, **kwargs)
+    print(dir(super()))
+    return super().list(request, *args, **kwargs)
+#    return super(BaseSerializer, self).__init__(**kwargs)
 
 def viewset_factory(endpoint):
     from .endpoints import BaseEndpoint

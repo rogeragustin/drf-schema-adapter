@@ -431,6 +431,7 @@ def list_method(self, request, *args, **kwargs):
             # Raise other types of aggregate errors
             return Response(str(e), status=400)
         return Response(data, content_type=f'application/json')
+    print(self.__class__)
     print(dir(self))
     return super().list(request, *args, **kwargs)
 #    return super(BaseSerializer, self).__init__(**kwargs)

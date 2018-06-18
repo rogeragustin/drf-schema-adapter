@@ -433,8 +433,8 @@ def list_method(self, request, *args, **kwargs):
         return Response(data, content_type=f'application/json')
     print(self.__class__)
     print(dir(self))
-    return super().list(request, *args, **kwargs)
-#    return super(BaseSerializer, self).__init__(**kwargs)
+    return super(self.__class__, self).list(request, *args, **kwargs)
+    #return super().list(request, *args, **kwargs)
 
 def viewset_factory(endpoint):
     from .endpoints import BaseEndpoint

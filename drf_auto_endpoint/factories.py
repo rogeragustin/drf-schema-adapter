@@ -197,6 +197,7 @@ def update(self, instance, validated_data):
             setattr(instance, item, validated_data[item])
 
     # 2. Load previous data and either update it with the new one. In case no data existed, create a new record.
+
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
 
@@ -346,7 +347,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             through_fields = [
                 f.name
                 for f in through_model._meta.get_fields()
-                if f.name != 'created_at' and f.name != 'updated_at' and f.name != 'id'
+                if f.name != 'created_at' and f.name != 'updated_at' #and f.name != 'id'
                    and f.name != M2MRelations(field,'related_field')
             ]
             through_fields.append('__str__')

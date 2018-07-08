@@ -239,14 +239,16 @@ def update(self, instance, validated_data):
                     M2MRelations(field, 'related_field_target')
                 ))
 
+                related_instance_id = rel_model_instance['instance]"
+                print(related_instance_id)
+
                 if field_instance:
                     print("FIELD_INSTANCE")
                     print(field_instance)
                     print(M2MRelations(field, 'related_field'))
                     print(rel_model_instance)
-                    # TODO Fer que es miri també si hi ha algun element diferent entre la nova info de f.name_data i la queryset anterior.
                     exec (
-                        "field_instance.update({0}={1}.id, updated_at=datetime.now(), **rel_model_instance)".
+                        "field_instance.update({0}={1}, updated_at=datetime.now(), **rel_model_instance)".
                             format(
                             M2MRelations(field, 'related_field'),
                             'instance'
@@ -272,7 +274,7 @@ def to_internal_value(self, data):
     obj = super(self.__class__, self).to_internal_value(data)
     instance_id = data.get('id', None)
     if instance_id:
-        obj['id'] = self.Meta.model.objects.get(id=instance_id)
+        obj['instance'] = self.Meta.model.objects.get(id=instance_id)
     return obj
 
 def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None):

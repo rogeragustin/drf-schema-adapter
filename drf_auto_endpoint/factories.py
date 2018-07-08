@@ -211,7 +211,7 @@ def update(self, instance, validated_data):
         exec ("from {0}.models import {1}".format(app, through_model_name))
         field_queryset = eval("{0}.objects.filter({1}=instance)".format(M2MRelations(field, 'through_model'),
                                                                         M2MRelations(field, 'related_field')))
-
+        print(eval(f.name + "_data"))
         field_validated_data_ids = [getattr(k['instance'], 'id') for k in
                                         eval(f.name + "_data")]
 

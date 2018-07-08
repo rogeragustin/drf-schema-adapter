@@ -240,7 +240,8 @@ def update(self, instance, validated_data):
                 ))
 
                 related_instance_id = rel_model_instance['instance']
-                print(related_instance_id)
+                print(type(related_instance_id))
+                print(dir(related_instance_id))
 
                 if field_instance:
                     print("FIELD_INSTANCE")

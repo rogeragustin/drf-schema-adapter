@@ -231,16 +231,12 @@ def update(self, instance, validated_data):
         # Set new content for intermediary model
         if eval(f.name + "_data") is not None:
             for rel_model_instance in eval(f.name + "_data"):
-                related_instance = rel_model_instance.pop('instance')
-                field_instance = eval("{0}.objects.filter(id={1})".format(
-                    M2MRelations(field, 'through_model'),
-                    related_instance.id)
-                )
-
-                if field_instance:
-                    #exec (
-                    #    "field_instance.update(id=related_instance.id, updated_at=datetime.now(), **rel_model_instance)"
-                    #)
+                related_instance = rel_model_instance.pop('instance') if 'instance' in rel_model_instance.keys() else None
+                if related_instance:
+                    field_instance = eval("{0}.objects.filter(id={1})".format(
+                        M2MRelations(field, 'through_model'),
+                        related_instance.id)
+                    )
                     field_instance.update(id=related_instance.id, updated_at=datetime.now(), **rel_model_instance)
                 else:
                     exec ("{0}.objects.create({1}={2}, **rel_model_instance)".format(

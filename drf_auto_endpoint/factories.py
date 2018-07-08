@@ -267,7 +267,7 @@ def to_internal_value(self, data):
     obj = super(self.__class__, self).to_internal_value(data)
     instance_id = data.get('id', None)
     if instance_id:
-        obj['instance'] = self.Meta.model.objects.get(id=instance_id)
+        obj['id'] = self.Meta.model.objects.get(id=instance_id)
     return obj
 
 def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None):

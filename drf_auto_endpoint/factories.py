@@ -179,6 +179,8 @@ def update(self, instance, validated_data):
     model = self.Meta.model
     print("PRE TRACTAMENT:")
     print(validated_data)
+    print(self)
+    print(dir(self))
     # 1. Pop data from validated.
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))

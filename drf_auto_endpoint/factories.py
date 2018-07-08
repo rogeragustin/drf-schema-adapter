@@ -215,7 +215,10 @@ def update(self, instance, validated_data):
         #                                eval(f.name + "_data")]
         field_validated_data_ids = [getattr(k[M2MRelations(field, 'related_field_target')], 'id') for k in
                                         eval(f.name + "_data")]
+        print("##########")
+        print(field_validated_data_ids)
         for i in field_queryset:
+            print(i)
             #i_id = getattr(getattr(i, M2MRelations(field, 'related_field_target')), 'id')
             i_id = getattr(i, 'id')
 
@@ -227,6 +230,7 @@ def update(self, instance, validated_data):
                         i_id
                     )
                 )
+        print("##########")
 
         # Set new content for intermediary model
         if eval(f.name + "_data") is not None:

@@ -217,7 +217,7 @@ def update(self, instance, validated_data):
         print(test[0]['instance'])
         print(dir(test[0]['instance']))
         field_validated_data_ids = [getattr(k['instance'], 'id') for k in
-                                        eval(f.name + "_data")]
+                                        eval(f.name + "_data") if 'instance' in k.keys()]
 
         for i in field_queryset:
             i_id = getattr(i, 'id')

@@ -179,8 +179,8 @@ def update(self, instance, validated_data):
     model = self.Meta.model
     print("PRE TRACTAMENT:")
     print(validated_data)
-    print(self.__class__)
-    print(dir(self))
+    #print(self.__class__)
+    #print(dir(self))
     # 1. Pop data from validated.
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
@@ -258,6 +258,18 @@ def update(self, instance, validated_data):
     return instance
 
 
+def to_internal_value(self, data):
+    """
+    Dict of native values <- Dict of primitive datatypes.
+    Add instance key to values if `id` present in primitive dict
+    :param data:
+    """
+    obj = super(self.__class__, self).to_internal_value(data)
+    instance_id = data.get('id', None)
+    if instance_id:
+        obj['instance'] = self.Meta.model.objects.get(id=instance_id)
+    return obj
+
 def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     print("CAMPS DEL RELATED_SERIALIZER")
     print(fields)
@@ -297,6 +309,8 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
+
+    cls_attrs['to_internal_value'] = to_internal_value
 
     return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
 

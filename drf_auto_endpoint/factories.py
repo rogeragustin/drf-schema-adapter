@@ -239,7 +239,7 @@ def update(self, instance, validated_data):
                     M2MRelations(field, 'related_field_target')
                 ))
 
-                related_instance_id = rel_model_instance['instance]"
+                related_instance_id = rel_model_instance['instance']"
                 print(related_instance_id)
 
                 if field_instance:

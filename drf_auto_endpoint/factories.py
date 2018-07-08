@@ -214,6 +214,8 @@ def update(self, instance, validated_data):
         test = eval(f.name + "_data")
         print(test[0])
         print(test[0].keys())
+        print(test[0]['instance'])
+        print(dir(test[0]['instance']))
         field_validated_data_ids = [getattr(k['instance'], 'id') for k in
                                         eval(f.name + "_data")]
 

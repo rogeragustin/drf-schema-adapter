@@ -232,7 +232,7 @@ def update(self, instance, validated_data):
         if eval(f.name + "_data") is not None:
             for rel_model_instance in eval(f.name + "_data"):
                 related_instance = rel_model_instance.pop('instance')
-                field_instance = eval("{0}.objects.filter(id=related_instance.id)")
+                field_instance = eval("{0}.objects.filter(id={0})".format(related_instance.id))
 
                 if field_instance:
                     #exec (

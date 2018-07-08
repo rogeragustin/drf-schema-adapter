@@ -213,14 +213,14 @@ def update(self, instance, validated_data):
                                                                         M2MRelations(field, 'related_field')))
         #field_validated_data_ids = [getattr(k[M2MRelations(field, 'related_field_target')], 'id') for k in
         #                                eval(f.name + "_data")]
-        field_validated_data_ids = [getattr(k[M2MRelations(field, 'related_field_target')], 'id') for k in
+        field_validated_data_ids = [getattr(k['instance'], 'id') for k in
                                         eval(f.name + "_data")]
         print("##########")
         print(field_validated_data_ids)
         for i in field_queryset:
-            print(i)
             #i_id = getattr(getattr(i, M2MRelations(field, 'related_field_target')), 'id')
             i_id = getattr(i, 'id')
+            print(i_id)
 
             if i_id not in field_validated_data_ids:
                 exec (

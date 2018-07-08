@@ -231,31 +231,14 @@ def update(self, instance, validated_data):
         # Set new content for intermediary model
         if eval(f.name + "_data") is not None:
             for rel_model_instance in eval(f.name + "_data"):
-                container_id = instance.id
-                other_id = eval("rel_model_instance['{}']".format(M2MRelations(field, 'related_field_target')))
-                field_instance = eval("{0}.objects.filter({1}=container_id, {2}=other_id)".format(
-                    M2MRelations(field, 'through_model'),
-                    M2MRelations(field, 'related_field'),
-                    M2MRelations(field, 'related_field_target')
-                ))
-
-                related_instance = rel_model_instance['instance']
-                print(related_instance.id)
-                print(related_instance.pk)
+                related_instance = rel_model_instance.pop('instance')
+                field_instance = eval("{0}.objects.filter(id=related_instance.id)")
 
                 if field_instance:
-                    print("FIELD_INSTANCE")
-                    print(field_instance)
-                    print(M2MRelations(field, 'related_field'))
-                    print(rel_model_instance)
-                    exec (
-                        "field_instance.update({0}={1}, updated_at=datetime.now(), **rel_model_instance)".
-                            format(
-                            M2MRelations(field, 'related_field'),
-                            'instance'
-
-                        )
-                    )
+                    #exec (
+                    #    "field_instance.update(id=related_instance.id, updated_at=datetime.now(), **rel_model_instance)"
+                    #)
+                    field_instance.update(id=related_instance.id, updated_at=datetime.now(), **rel_model_instance)
                 else:
                     exec ("{0}.objects.create({1}={2}, **rel_model_instance)".format(
                         M2MRelations(field, 'through_model'),

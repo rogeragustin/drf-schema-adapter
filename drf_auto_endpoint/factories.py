@@ -257,6 +257,8 @@ def update(self, instance, validated_data):
 
 
 def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
+    print("CAMPS DEL RELATED_SERIALIZER")
+    print(fields)
     if model is not None:
         assert endpoint is None, "You cannot specify both a model and an endpoint"
         from .endpoints import Endpoint

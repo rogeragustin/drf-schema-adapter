@@ -177,7 +177,8 @@ def create(self, validated_data):
 
 def update(self, instance, validated_data):
     model = self.Meta.model
-
+    print("PRE TRACTAMENT:")
+    print(validated_data)
     # 1. Pop data from validated.
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
@@ -197,7 +198,8 @@ def update(self, instance, validated_data):
             setattr(instance, item, validated_data[item])
 
     # 2. Load previous data and either update it with the new one. In case no data existed, create a new record.
-
+    print("POST TRACTAMENT:")
+    print(validated_data)
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
 
@@ -207,10 +209,14 @@ def update(self, instance, validated_data):
         exec ("from {0}.models import {1}".format(app, through_model_name))
         field_queryset = eval("{0}.objects.filter({1}=instance)".format(M2MRelations(field, 'through_model'),
                                                                         M2MRelations(field, 'related_field')))
-        for i in field_queryset:
-            i_id = getattr(getattr(i, M2MRelations(field, 'related_field_target')), 'id')
-            field_validated_data_ids = [getattr(k[M2MRelations(field, 'related_field_target')], 'id') for k in
+        #field_validated_data_ids = [getattr(k[M2MRelations(field, 'related_field_target')], 'id') for k in
+        #                                eval(f.name + "_data")]
+        field_validated_data_ids = [getattr(k[M2MRelations(field, 'related_field_target')], 'id') for k in
                                         eval(f.name + "_data")]
+        for i in field_queryset:
+            #i_id = getattr(getattr(i, M2MRelations(field, 'related_field_target')), 'id')
+            i_id = getattr(i, 'id')
+
             if i_id not in field_validated_data_ids:
                 exec (
                     "{0}.objects.filter({1}={2}).delete()".format(
@@ -238,7 +244,6 @@ def update(self, instance, validated_data):
                             format(
                             M2MRelations(field, 'related_field'),
                             'instance'
-
                         )
                     )
                 else:

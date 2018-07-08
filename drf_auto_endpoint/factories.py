@@ -177,10 +177,7 @@ def create(self, validated_data):
 
 def update(self, instance, validated_data):
     model = self.Meta.model
-    print("PRE TRACTAMENT:")
-    print(validated_data)
-    #print(self.__class__)
-    #print(dir(self))
+
     # 1. Pop data from validated.
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
@@ -200,8 +197,6 @@ def update(self, instance, validated_data):
             setattr(instance, item, validated_data[item])
 
     # 2. Load previous data and either update it with the new one. In case no data existed, create a new record.
-    print("POST TRACTAMENT:")
-    print(validated_data)
     for f in [f for f in model._meta.get_fields() if f.many_to_many and not f.auto_created]:
         field = eval("model.{}".format(f.name))
 
@@ -211,11 +206,6 @@ def update(self, instance, validated_data):
         exec ("from {0}.models import {1}".format(app, through_model_name))
         field_queryset = eval("{0}.objects.filter({1}=instance)".format(M2MRelations(field, 'through_model'),
                                                                         M2MRelations(field, 'related_field')))
-        test = eval(f.name + "_data")
-        print(test[0])
-        print(test[0].keys())
-        print(test[0]['instance'])
-        print(dir(test[0]['instance']))
         field_validated_data_ids = [getattr(k['instance'], 'id') for k in
                                         eval(f.name + "_data") if 'instance' in k.keys()]
 
@@ -262,9 +252,8 @@ def to_internal_value(self, data):
         obj['instance'] = self.Meta.model.objects.get(id=instance_id)
     return obj
 
+
 def related_serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
-    print("CAMPS DEL RELATED_SERIALIZER")
-    print(fields)
     if model is not None:
         assert endpoint is None, "You cannot specify both a model and an endpoint"
         from .endpoints import Endpoint

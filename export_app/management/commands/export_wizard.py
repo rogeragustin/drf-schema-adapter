@@ -48,7 +48,6 @@ class Command(SerializerExporterWithFields, BaseCommand):
                         endpoints.append('{}/{}'.format(path, method))
 
         for endpoint in endpoints:
-            print('Exporting {} using {}'.format(endpoint, adapter_name))
             base_name, method_name = endpoint.rsplit('/', 1)
 
             try:
@@ -92,6 +91,5 @@ class Command(SerializerExporterWithFields, BaseCommand):
                 'updir': 3,
             }
 
-            print('writing {}/{}'.format(base_name, method_name))
             adapter.write_to_file(base_name, method_name, context, options['noinput'])
 

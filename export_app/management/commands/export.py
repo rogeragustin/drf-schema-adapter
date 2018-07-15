@@ -49,7 +49,6 @@ class Command(SerializerExporterWithFields, BaseCommand):
 
         for endpoint in endpoints:
             if endpoint not in excludes:
-                print('Exporting {} using {}'.format(endpoint, adapter_name))
                 try:
                     if adapter.works_with in ['serializer', 'both']:
                         model, serializer_instance, model_name, application_name = \

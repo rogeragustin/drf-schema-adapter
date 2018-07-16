@@ -345,7 +345,11 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         try:
             through_model_name = M2MRelations(field, 'through_model')
             app = endpoint.model._meta.app_label
-
+            print("*********")
+            print(endpoint.model)
+            print(field)
+            print(through_model_name)
+            print("*********")
             exec("from {0}.models import {1}".format(app,through_model_name))
             through_model = eval(through_model_name)
             through_fields = [

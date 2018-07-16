@@ -344,29 +344,24 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
 
         try:
             through_model_name = M2MRelations(field, 'through_model')
-            app = endpoint.model._meta.app_label
-            print("*********")
-            print(endpoint.model)
-            print(field)
-            print(through_model_name)
-            print("*********")
-            exec("from {0}.models import {1}".format(app,through_model_name))
-            through_model = eval(through_model_name)
-            through_fields = [
-                f.name
-                for f in through_model._meta.get_fields()
-                if f.name != 'created_at' and f.name != 'updated_at' #and f.name != 'id'
-                   and f.name != M2MRelations(field,'related_field')
-            ]
-            through_fields.append('__str__')
+            if '_' not in through_model_name:
+                app = endpoint.model._meta.app_label
+                exec("from {0}.models import {1}".format(app,through_model_name))
+                through_model = eval(through_model_name)
+                through_fields = [
+                    f.name
+                    for f in through_model._meta.get_fields()
+                    if f.name != 'created_at' and f.name != 'updated_at' #and f.name != 'id'
+                       and f.name != M2MRelations(field,'related_field')
+                ]
+                through_fields.append('__str__')
 
-            SubSerializer = related_serializer_factory(model=through_model, fields = through_fields)
+                SubSerializer = related_serializer_factory(model=through_model, fields = through_fields)
 
-            cls_attrs[field.field.name] = SubSerializer(source=M2MRelations(field, 'related_name'), many=True, required=False, allow_null=True)
+                cls_attrs[field.field.name] = SubSerializer(source=M2MRelations(field, 'related_name'), many=True, required=False, allow_null=True)
 
-            cls_attrs["create"] = create
-            cls_attrs["update"] = update
-
+                cls_attrs["create"] = create
+                cls_attrs["update"] = update
 
         except FieldDoesNotExist:
             pass

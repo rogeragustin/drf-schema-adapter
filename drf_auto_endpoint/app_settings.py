@@ -6,7 +6,7 @@ from django.conf import settings as django_settings
 DEFAULT_SETTINGS = {
     'WIDGET_MAPPING': {
         'BooleanField': 'checkbox',
-        'NullBooleanField': 'checkbox',
+        'NullBooleanField': 'null-boolean',
         'IntegerField': 'number',
         'FloatField': 'number',
         'DecimalField': 'number',
@@ -27,6 +27,8 @@ DEFAULT_SETTINGS = {
         'URLField': 'url',
         'ManyToManyField': 'manytomany-lists',
         'ManyToManyRel': 'manytomany-lists',
+        'GenericRelatedField': 'generic-foreignkey',
+        'DurationField': 'duration',
     },
     'DEFAULT_WIDGET': 'text',
     'METADATA_ADAPTER': 'drf_auto_endpoint.adapters.BaseAdapter',

@@ -8,11 +8,13 @@ except ImportError:
     from rest_framework.filters import DjangoFilterBackend
 from django.core.exceptions import FieldDoesNotExist
 
+from django_filters import FilterSet
+
 try:
-    from django.db.models.fields.reverse_related import ManyToOneRel, OneToOneRel
+    from django.db.models.fields.reverse_related import ManyToOneRel, OneToOneRel, ManyToManyRel
 except ImportError:
     # Django 1.8
-    from django.db.models.fields.related import ManyToOneRel, OneToOneRel
+    from django.db.models.fields.related import ManyToOneRel, OneToOneRel, ManyToManyRel
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -45,7 +47,6 @@ class NullToDefaultMixin(object):
         for field in self.Meta.fields:
             try:
                 model_field = self.Meta.model._meta.get_field(field)
-
                 if hasattr(model_field, 'default') and model_field.default != NOT_PROVIDED and \
                         data.get(field, NOT_PROVIDED) is None:
                     data.pop(field)
@@ -60,9 +61,9 @@ class NullToDefaultMixin(object):
 def M2MRelations(field, attr):
     """
     Given a M2M field and a desired output, return the string containing the result.
-    :param field: 
-    :param attr: 
-    :return: 
+    :param field:
+    :param attr:
+    :return:
     """
     if attr == 'name':
         return field.field.name
@@ -313,7 +314,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         'model': endpoint.model,
         'fields': fields if fields is not None else endpoint.get_fields_for_serializer()
     }
-
     meta_parents = (object, )
     if hasattr(base_class, 'Meta'):
         meta_parents = (base_class.Meta, ) + meta_parents
@@ -336,7 +336,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             cls_attrs[endpoint.model._meta.get_field(f).name] = RecursiveField(required=False, allow_null=True, many=True)
         except FieldDoesNotExist:
             pass
-    
+
     # Special treatment for many to many fields.
     for f in [f for f in endpoint.model._meta.get_fields() if f.many_to_many and not f.auto_created and
               f.name in meta_attrs['fields']]:
@@ -378,10 +378,21 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
                 elif isinstance(model_field, ManyToOneRel) and model_field.name != "children": # This part of the code has been modified too, as otherwise it was destroying the "children" case.
                     cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+                elif isinstance(model_field, ManyToManyRel):
+                    # related ManyToMany should not be required
+                    cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(
+                        many=True,
+                        required=False,
+                        queryset=model_field.related_model.objects.all()
+                    )
             except FieldDoesNotExist:
                 cls_attrs[meta_field] = serializers.ReadOnlyField()
 
-    return type(cls_name, (NullToDefaultMixin, base_class,), cls_attrs)
+    try:
+        return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)
+    except TypeError:
+        # MRO issue, let's try the other way around
+        return type(cls_name, (base_class, NullToDefaultMixin, ), cls_attrs)
 
 #####################################
 ### PAGINATION FACTORY ###
@@ -420,6 +431,31 @@ def pagination_factory(endpoint):
     return type(pg_cls_name, (BasePagination, ), pg_cls_attrs)
 
 
+def filter_factory(endpoint):
+
+    base_class = endpoint.base_filter_class
+
+    cls_name = '{}FilterSet'.format(endpoint.model.__name__)
+
+    meta_attrs = {
+        'model': endpoint.model,
+        'fields': [field if not isinstance(field, dict) else field.get('key', field['name'])
+                   for field in endpoint.filter_fields]
+    }
+
+    meta_parents = (object, )
+    if hasattr(base_class, 'Meta'):
+        meta_parents = (base_class.Meta, ) + meta_parents
+
+    Meta = type('Meta', meta_parents, meta_attrs)
+
+    cls_attrs = {
+        'Meta': Meta,
+    }
+
+    return type(cls_name, (base_class, ), cls_attrs)
+
+
 #####################################
 ### VIEWSET FACTORY ###
 #####################################
@@ -447,7 +483,8 @@ def viewset_factory(endpoint):
     cls_name = '{}ViewSet'.format(endpoint.model.__name__)
     tmp_cls_attrs = {
         'serializer_class': endpoint.get_serializer(),
-        'queryset': endpoint.model.objects.all(),
+        'queryset': endpoint.queryset if getattr(endpoint, 'queryset', None) is not None \
+            else endpoint.model.objects.all(),
         'endpoint': endpoint,
         '__doc__': base_viewset.__doc__
     }
@@ -457,6 +494,9 @@ def viewset_factory(endpoint):
         for key, value in tmp_cls_attrs.items() if key == '__doc__' or
         getattr(base_viewset, key, None) is None
     }
+
+    if 'filter_class' in cls_attrs or 'base_filter_class' in cls_attrs:
+        cls_attrs.pop('filter_fields', None)
 
     if endpoint.permission_classes is not None:
         cls_attrs['permission_classes'] = endpoint.permission_classes
@@ -472,16 +512,35 @@ def viewset_factory(endpoint):
         ('search_fields', SearchFilter),
         ('ordering_fields', OrderingFilter),
     ):
+        if hasattr(endpoint, 'get_{}'.format(filter_type)):
+            method = getattr(endpoint, 'get_{}'.format(filter_type))
+            try:
+                val = method(check_viewset_if_none=False)
+            except TypeError:
+                val = method(request=None, check_viewset_if_none=False)
 
-        if getattr(endpoint, filter_type, None) is not None:
+        else:
+            val = []
+        if val is not None and val != []:
             filter_backends.append(backend)
-            cls_attrs[filter_type] = getattr(endpoint, filter_type)
+
+            if filter_type == 'filter_fields':
+                cls_attrs['filter_fields'] = [field['name'] if isinstance(field, dict) else field
+                                              for field in val]
+            elif filter_type == 'ordering_fields':
+                cls_attrs['ordering_fields'] = [field['filter'] if isinstance(field, dict) else field
+                                                for field in val]
+            else:
+                cls_attrs[filter_type] = getattr(endpoint, filter_type)
 
     if hasattr(endpoint, 'filter_class'):
-        if DjangoFilterBackend not in filter_backends:
-            filter_backends.append(DjangoFilterBackend)
         cls_attrs['filter_class'] = endpoint.filter_class
-    elif hasattr(base_viewset, 'filter_class') and DjangoFilterBackend not in filter_backends:
+    elif hasattr(endpoint, 'base_filter_class'):
+        cls_attrs['filter_class'] = filter_factory(endpoint)
+
+    if DjangoFilterBackend not in filter_backends and (hasattr(endpoint, 'filter_class') or
+                                                       hasattr(base_viewset, 'filter_class') or
+                                                       hasattr(endpoint, 'base_filter_class')):
         filter_backends.append(DjangoFilterBackend)
 
     if len(filter_backends) > 0:

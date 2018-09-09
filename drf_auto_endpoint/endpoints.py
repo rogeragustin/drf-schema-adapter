@@ -1,7 +1,9 @@
+from collections import Iterable
 import json
 import os
 from six import with_metaclass
 
+from django.db.models.fields.related import ForeignKey
 from django.conf import settings as django_settings
 from django.utils.module_loading import import_string
 
@@ -57,7 +59,7 @@ class EndpointMetaClass(type):
                                 inflector = Inflector(inflector_language)
 
                             getattr(new_class, key).action_kwargs['params']['model'] = '{}/{}/{}'.format(
-                                model._meta.app_label.lower(),
+                                model._meta.app_label.lower().replace('_', '-'),
                                 inflector.pluralize(model._meta.model_name.lower()),
                                 value.__name__
                             )
@@ -69,6 +71,7 @@ class EndpointMetaClass(type):
 
                         fieldsets_path = os.path.join(
                             django_settings.BASE_DIR,
+                            new_class._fieldsets_location,
                             new_class.__module__.rsplit('.', 1)[0],
                             'fieldsets.json'
                         )
@@ -88,7 +91,7 @@ class EndpointMetaClass(type):
                             value.action_kwargs['params'] = value.action_kwargs.get('params', {})
                             value.action_kwargs['params']['fieldsets'] = [
                                 {'name': field}
-                                for field in value.serializer.Meta.fields
+                                for field in value.serializer().fields.keys()
                             ]
 
         if new_class.fieldsets is None and new_class.model is not None:
@@ -118,12 +121,14 @@ class BaseEndpoint(object):
     model = None
     fields = None
     exclude_fields = ()
-    serializer = None
+    extra_fields = None
+    foreign_key_as_list = False
 
+    serializer = None
     fieldsets = None
+
     list_display = None
     list_editable = None
-    extra_fields = None
 
     permission_classes = None
     filter_fields = None
@@ -148,6 +153,7 @@ class BaseEndpoint(object):
     _translated_fields = None
     _translated_field_names = None
     _default_language_field_names = None
+    _fieldsets_location = ''
 
     def get_languages(self):
         return get_languages()
@@ -160,6 +166,13 @@ class BaseEndpoint(object):
     def model_name(self):
         return self.inflector.pluralize(self.singular_model_name)
 
+    def get_singular_full_name(self):
+
+        return '{}/{}'.format(
+            self.application_name.replace('_', '-'),
+            self.singular_model_name.replace('_', '-')
+        )
+
     @property
     def application_name(self):
         return self.model._meta.app_label.lower()
@@ -171,7 +184,7 @@ class BaseEndpoint(object):
 
         if self.fields is None:
             if self.serializer is not None:
-                return self.serializer.Meta.fields
+                return self.serializer().fields.keys()
 
             self.fields = tuple([f for f in get_all_field_names(self.model)
                                  if f not in self.default_language_field_names and
@@ -225,7 +238,11 @@ class BaseEndpoint(object):
 
     def _get_field_dict(self, field):
         return get_field_dict(field, self.get_serializer(), self.get_translated_fields(),
-                              self.fields_annotation, self.model)
+                              self.fields_annotation, self.model,
+                              foreign_key_as_list=((isinstance(self.foreign_key_as_list, Iterable) and
+                                                    field in self.foreign_key_as_list) or
+                                                   (not isinstance(self.foreign_key_as_list, Iterable)
+                                                    and self.foreign_key_as_list)))
 
     def get_fields(self):
         return [
@@ -250,6 +267,8 @@ class BaseEndpoint(object):
             if '__str__' in self.get_fields_for_serializer():
                 return ['__str__', ]
             return [self.get_fields()[0]['key']]
+        elif self.list_display == '__all__':
+            return self.get_fields_for_serializer()
         return self.list_display
 
     def _get_endpoint_list(self, name, check_viewset_if_none=False):
@@ -265,9 +284,13 @@ class BaseEndpoint(object):
         fields = self._get_endpoint_list('filter_fields', check_viewset_if_none)
         return fields
 
+    def get_search_fields(self, check_viewset_if_none=True):
+        fields = self._get_endpoint_list('search_fields', check_viewset_if_none)
+        return fields
+
     @property
     def search_enabled(self, check_viewset_if_none=True):
-        fields = self._get_endpoint_list('search_fields', check_viewset_if_none)
+        fields = self.get_search_fields(check_viewset_if_none=True)
         return len(fields) > 0
 
     def get_ordering_fields(self, check_viewset_if_none=True):
@@ -275,12 +298,22 @@ class BaseEndpoint(object):
         return fields
 
     def get_needs(self):
+        model_fields = [
+            f
+            for f in self.model._meta.get_fields()
+            if f.is_relation and f.name in self.get_fields_for_serializer() and (
+                not isinstance(f, ForeignKey) or
+                self.foreign_key_as_list is False or (
+                   isinstance(self.foreign_key_as_list, Iterable) and
+                   f.name not in self.foreign_key_as_list
+                )
+            )
+        ]
         related_models = [
             f.related_model
             if f.related_model and f.related_model != self.model
             else f.model if f.model and f.model != self.model else None
-            for f in self.model._meta.get_fields()
-            if f.is_relation and f.name in self.get_fields_for_serializer()
+            for f in model_fields
         ]
         return [
             {

@@ -12,7 +12,7 @@ except ImportError:
 
 from ..models import Product, Category, PRODUCT_TYPES
 
-from .data import DummyProductSerializer, DummyProductViewSet, DummyProductSerializerWithField
+from .data import AllFieldDummyProductSerializer, DummyProductSerializer, DummyProductViewSet, DummyProductSerializerWithField
 
 from drf_auto_endpoint.endpoints import Endpoint
 from drf_auto_endpoint.router import router
@@ -71,7 +71,7 @@ class EndpointTestCase(TestCase):
             self.assertIn('extra', field_dict)
             if field == 'category':
                 self.assertIn('related_endpoint', field_dict)
-                self.assertEqual(field_dict['related_endpoint'], 'sample/category')
+                self.assertEqual(field_dict['related_endpoint'], {'app': 'sample', 'singular': 'category', 'plural': 'categories'})
                 self.assertNotIn('choices', field_dict)
             elif field == 'product_type':
                 self.assertIn('choices', field_dict)
@@ -106,6 +106,9 @@ class EndpointTestCase(TestCase):
 
         self.assertEqual(endpoint.get_serializer(), DummyProductSerializer)
 
+        endpoint = Endpoint(model=Product, serializer=AllFieldDummyProductSerializer)
+        self.assertEqual(len(endpoint.get_fields_for_serializer()), len(self.fields))
+
     def test_viewset_factory(self):
         viewset = self.endpoint.get_viewset()
         self.assertEqual(viewset.serializer_class, self.endpoint.get_serializer())
@@ -118,7 +121,7 @@ class EndpointTestCase(TestCase):
         viewset = self.alternate_endpoint.get_viewset()
 
         for attr in ('permission_classes', 'filter_fields', 'search_fields', 'ordering_fields'):
-            self.assertEqual(getattr(viewset, attr), getattr(self, attr))
+            self.assertEqual(list(getattr(viewset, attr)), list(getattr(self, attr)))
 
         for backend in ('DjangoFilterBackend', 'SearchFilter', 'OrderingFilter'):
             self.assertIn(backend, [be.__name__ for be in viewset.filter_backends])
@@ -155,12 +158,12 @@ class EndpointTestCase(TestCase):
 
         serializer = endpoint.get_serializer()
         self.assertEqual(serializer.Meta.model, Product)
-        self.assertEqual(len(serializer.Meta.fields), len(self.endpoint.get_fields_for_serializer()))
+        self.assertEqual(len(serializer().fields.items()), len(self.endpoint.get_fields_for_serializer()))
 
         viewset = endpoint.get_viewset()
 
         for attr in ('permission_classes', 'filter_fields', 'search_fields', 'ordering_fields'):
-            self.assertEqual(getattr(viewset, attr), getattr(self, attr))
+            self.assertEqual(list(getattr(viewset, attr)), list(getattr(self, attr)))
 
         for backend in ('DjangoFilterBackend', 'SearchFilter', 'OrderingFilter'):
             self.assertIn(backend, [be.__name__ for be in viewset.filter_backends])

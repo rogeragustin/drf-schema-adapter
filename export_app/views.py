@@ -7,8 +7,18 @@ from export_app.base import SerializerExporterWithFields, ModelNotFoundException
 
 
 class BaseModelView(SerializerExporterWithFields, TemplateView):
-    adapter_class = import_string(settings.ADAPTER)
     content_type = 'text/javascript'
+    endpoint = None
+
+    @property
+    def adapter_class(self):
+        if self.endpoint is not None and getattr(self.endpoint, 'default_export_adapter', None) is not None:
+            return self.endpoint.default_export_adapter
+        return import_string(settings.ADAPTER)
+
+    def get_endpoint_for_basename(self, *args, **kwargs):
+        self.endpoint = super(BaseModelView, self).get_endpoint_for_basename(*args, **kwargs)
+        return self.endpoint
 
     def get_template_names(self):
         return [self.adapter_class.dynamic_template_name]
@@ -24,13 +34,15 @@ class EmberModelView(BaseModelView):
         try:
             model, serializer_instance, context['model_name'], context['application_name'] = \
                 self.get_serializer_for_basename(self.kwargs['model'])
+            endpoint = self.get_endpoint_for_basename(self.kwargs['model'])
         except ModelNotFoundException as e:
             raise Http404('No viewset found for {}'.format(e.model))
 
         for item in ['model_name', 'application_name']:
             context[item] = context[item].replace('_', '-')
 
-        fields, rels = self.get_fields_for_model(model, serializer_instance, self.adapter_class)
+        fields, rels = self.get_fields_for_model(model, serializer_instance, self.adapter_class,
+                                                 endpoint=endpoint)
 
         # WIP: for models on the fly, we may need to add url name
         # url_name = settings.URL_NAME

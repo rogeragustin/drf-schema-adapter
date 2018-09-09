@@ -2,12 +2,18 @@ from django.conf import settings as django_settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import FieldDoesNotExist
 from django.db.models.fields import NOT_PROVIDED
+from django.utils.module_loading import import_string
 from django.utils.text import capfirst
+
+from inflector import Inflector
 
 from rest_framework import serializers, relations
 from rest_framework.fields import empty
 
 from .app_settings import settings
+
+inflector_language = import_string(settings.INFLECTOR_LANGUAGE)
+inflector = Inflector(inflector_language)
 
 
 def reverse(*args, **kwargs):
@@ -42,27 +48,20 @@ def get_validation_attrs(instance_field):
     return rv
 
 
-def get_field_dict(field, serializer, translated_fields=None, fields_annotation=False, model=None):
+def get_field_dict(field, serializer, translated_fields=None, fields_annotation=False, model=None,
+                   foreign_key_as_list=False):
     if translated_fields is None:
         translated_fields = []
 
     serializer_instance = serializer()
     name = field['name'] if isinstance(field, dict) else field
-#    print(name)
-#    print("1 TRY:")
-#    print(serializer_instance)
-#    print(serializer_instance.fields)
-#    print(serializer_instance.get_fields())
-#    print(serializer_instance.fields[name])
     try:
         field_instance = serializer_instance.fields[name]
-
     except KeyError:
         return {'key': name}
-
     read_only = name == '__str__'
 
-    # Modification to allow dealing with serpy serializers, whose fields don't admit the property read_only.
+    # [RA] Modification to allow dealing with serpy serializers, whose fields don't admit the property read_only.
     if  hasattr(field_instance, 'read_only'):
         if not read_only and field_instance.read_only:
             if not isinstance(field_instance, serializers.ManyRelatedField):
@@ -90,12 +89,12 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
         if 'help' in fields_annotation[name]:
             rv['ui']['help'] = fields_annotation[name]['help']
 
-    # Modification to allow dealing with serpy serializers, whose fields don't admit the property help_text.
+    # [RA] Modification to allow dealing with serpy serializers, whose fields don't admit the property help_text.
     if hasattr(field_instance, 'help_text'):
         if field_instance.help_text is not None and 'help' not in rv['ui']:
             rv['ui']['help'] = field_instance.help_text
 
-    # Modification to allow dealing with serpy serializers, whose fields don't admit the property default.
+    # [RA] Modification to allow dealing with serpy serializers, whose fields don't admit the property default.
     # default = field_instance.default
     default = field_instance.default if hasattr(field_instance, 'help_text') else empty
     model_field = None
@@ -105,6 +104,13 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
             model_field = model._meta.get_field(field_instance.source) if hasattr(field_instance, 'source') else model._meta.get_field(name)
         except FieldDoesNotExist:
             pass
+
+    if model_field is not None:
+        try:
+            rv['ui']['label'] = model_field.verbose_name
+        except AttributeError:
+            rv['ui']['label'] = model_field.name
+
     if default and default != empty and not callable(default):
         rv['default'] = default
     elif default == empty and hasattr(model_field, 'default'):
@@ -113,18 +119,45 @@ def get_field_dict(field, serializer, translated_fields=None, fields_annotation=
             if callable(default):
                 default = default()
             rv['default'] = default
-    if isinstance(field_instance, (relations.PrimaryKeyRelatedField, relations.ManyRelatedField)):
+
+    if isinstance(field_instance, (relations.PrimaryKeyRelatedField, relations.ManyRelatedField,
+                                   relations.SlugRelatedField)):
+        related_model = None
         if model_field:
             related_model = model_field.related_model
-            rv['type'] = settings.WIDGET_MAPPING[model_field.__class__.__name__]
-        else:
+        elif hasattr(field_instance, 'queryset') and field_instance.queryset is not None:
             related_model = field_instance.queryset.model
+
         if model_field and model_field.__class__.__name__ == 'ManyToManyRel':
             rv['validation']['required'] = False
-        rv['related_endpoint'] = '{}/{}'.format(
-            related_model._meta.app_label,
-            related_model._meta.model_name.lower()
-        )
+
+        if related_model is not None:
+            if not foreign_key_as_list:
+                rv['type'] = settings.WIDGET_MAPPING[model_field.__class__.__name__]
+                rv['related_endpoint'] = {
+                    'app': related_model._meta.app_label,
+                    'singular': related_model._meta.model_name.lower(),
+                    'plural': inflector.pluralize(related_model._meta.model_name.lower())
+                }
+
+            else:
+                rv['type'] = settings.WIDGET_MAPPING['choice']
+                qs = related_model.objects
+                if hasattr(field_instance, 'queryset') and field_instance.queryset is not None:
+                    qs = field_instance.queryset
+
+                key_attr = 'pk'
+                if model_field and hasattr(model_field, 'to_fields') and model_field.to_fields is not None \
+                        and len(model_field.to_fields) > 0:
+                    key_attr = model_field.to_fields[0]
+
+                rv['choices'] = [
+                    {
+                        'label': record.__str__(),
+                        'value': getattr(record, key_attr)
+                    } for record in qs.all()
+                ]
+
     elif hasattr(field_instance, 'choices'):
         rv['type'] = settings.WIDGET_MAPPING['choice']
         rv['choices'] = [

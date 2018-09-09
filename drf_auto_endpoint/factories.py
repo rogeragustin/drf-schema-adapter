@@ -2,7 +2,8 @@ from rest_framework import pagination, serializers
 from rest_framework.filters import OrderingFilter, SearchFilter
 
 try:
-    from django_filters.rest_framework import DjangoFilterBackend
+    #from django_filters.rest_framework import DjangoFilterBackend
+    from config.custom_files.DjangoFilterCustomBackend import DjangoFilterCustomBackend as DjangoFilterBackend
 except ImportError:
     # Older versions of DRF and django_filters
     from rest_framework.filters import DjangoFilterBackend

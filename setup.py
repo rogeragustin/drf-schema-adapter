@@ -55,7 +55,7 @@ setup(
         'django-filter<2.0; python_version<"3.0"',
         'django-filter>=0.13.0; python_version>="3.0"',
         'Inflector>=2.0.11',
-        'six'
+        'six',
         'djangorestframework-recursive>=0.1.2',
         'drf-writable-nested>=0.3.2',
     ]

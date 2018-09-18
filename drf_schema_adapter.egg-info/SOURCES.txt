@@ -24,6 +24,7 @@ export_app/management/__init__.py
 export_app/management/commands/__init__.py
 export_app/management/commands/export.py
 export_app/management/commands/export_wizard.py
+export_app/management/commands/reexport.py
 export_app/templates/export_app/angular2_model.ts
 export_app/templates/export_app/angular2_model_base.ts
 export_app/templates/export_app/angular2_service.ts

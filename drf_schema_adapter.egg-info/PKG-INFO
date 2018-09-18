@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: drf-schema-adapter
-Version: 0.9.48
+Version: 0.9.75
 Summary: Making using Django with frontend libraries and frameworks DRYer
 Home-page: https://github.com/drf-forms/drf-schema-adapter
 Author: Emmanuelle Delescolle, Adrien Brunet, Mauro Bianchi, Mattia Larentis, Aaron Elliot Ross
@@ -12,18 +12,24 @@ Description: # DRF-schema-adapter [![Build Status](https://travis-ci.org/drf-for
         as it is to declare a new `ModelAdmin` in Django and export the corresponding definition to frontend
         frameworks and libraries.
         
-        ## Installation
+        ## Compatibility Matrix
         
         **DRF-schema-adapter** is compatible with the following matrix
         
         |                 | Py 2.7      | Py 3.4      | Py 3.5      | Py 3.6      |
         | --------------- | ----------- | ----------- | ----------- | ----------- |
-        | **Django 1.8**  | DRF 3.2-3.6 | DRF 3.2-3.6 | DRF 3.2-3.6 | DRF 3.2-3.6 |
+        | **Django 1.8**  | DRF 3.3-3.6 | DRF 3.3-3.6 | DRF 3.3-3.6 | DRF 3.3-3.6 |
         | **Django 1.9**  | DRF 3.3+    | DRF 3.3+    | DRF 3.3+    | DRF 3.3+    |
         | **Django 1.10** | DRF 3.4+    | DRF 3.4+    | DRF 3.4+    | DRF 3.4+    |
         | **Django 1.11** | DRF 3.4+    | DRF 3.4+    | DRF 3.4+    | DRF 3.4+    |
         | **Django 2.0**  | No          | No          | DRF 3.7+    | DRF 3.7+    |
-        | **Master**      | No          | No          | DRF 3.7+    | DRF 3.7+    |
+        
+        :warning: For DRF 3.2, (Django 1.8 only), use version 0.9.56 or prior
+        
+        :warning: Django-filter 2.x dropped support for Python2 and Django < 1.11,
+        update your requirements accordingly if this affects you
+        
+        ## Installation
         
         ### With pip
         
@@ -140,8 +146,8 @@ Description: # DRF-schema-adapter [![Build Status](https://travis-ci.org/drf-for
         
         - [ ] Write better documentation
         - [ ] Write more/better tests
-        - [ ] Enable admin-like registration mechanism
-        - [ ] Add languages information when django-model-translation is installed
+        - [X] Enable admin-like registration mechanism
+        - [X] Add languages information when django-model-translation is installed
         
         ---
         
@@ -155,6 +161,8 @@ Classifier: Framework :: Django
 Classifier: Framework :: Django :: 1.8
 Classifier: Framework :: Django :: 1.9
 Classifier: Framework :: Django :: 1.10
+Classifier: Framework :: Django :: 1.11
+Classifier: Framework :: Django :: 2.0
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
@@ -164,5 +172,6 @@ Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
 Classifier: Programming Language :: Python :: 3.4
 Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
 Classifier: Topic :: Internet :: WWW/HTTP
 Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content

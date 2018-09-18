@@ -1,2 +1,1 @@
 drf_auto_endpoint
-export_app

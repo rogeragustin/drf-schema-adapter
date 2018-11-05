@@ -12,7 +12,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django_filters import FilterSet
 
 try:
-    from django.db.models.fields.reverse_related import ManyToOneRel, OneToOneRel, ManyToManyRel
+    from django.db.models.fields.reverse_related import ManyToOneRel, OneToOneRel, ManyToManyRel, ForeignObjectRel
 except ImportError:
     # Django 1.8
     from django.db.models.fields.related import ManyToOneRel, OneToOneRel, ManyToManyRel
@@ -36,13 +36,14 @@ class NullToDefaultMixin(object):
 
     def __init__(self, *args, **kwargs):
         super(NullToDefaultMixin, self).__init__(*args, **kwargs)
-        for field in self.Meta.fields:
-            try:
-                model_field = self.Meta.model._meta.get_field(field)
-                if hasattr(model_field, 'default') and model_field.default != NOT_PROVIDED:
-                    self.fields[field].allow_null = True
-            except FieldDoesNotExist:
-                pass
+        #for field in self.Meta.fields:
+        #    try:
+        #        model_field = self.Meta.model._meta.get_field(field)
+        #        if hasattr(model_field, 'default') and model_field.default != NOT_PROVIDED:
+        #            self.fields[field].allow_null = True
+                    # TODO S'ha de crear el metode fields en el serpy serilaizer per tal que aixo funcioni.
+        #    except FieldDoesNotExist:
+        #        pass
 
     def validate(self, data):
         for field in self.Meta.fields:
@@ -59,6 +60,55 @@ class NullToDefaultMixin(object):
 #####################################
 ### SERIALIZER FACTORY ###
 #####################################
+from django.db import models
+import serpy
+
+class ForeignKeyField(serpy.Field):
+   def to_value(self, value):
+       if value != None:
+           if '__str__' in dir(value):
+               return value.__str__()
+           else:
+               return value.pk
+       else:
+           return value
+
+
+def get_serpy_type(model_field_type):
+    model_serpy_map = {
+        models.AutoField: serpy.IntField(required=False),
+        models.BigIntegerField: serpy.IntField(required=False),
+        models.BooleanField: serpy.BoolField(required=False),
+        models.CharField: serpy.StrField(required=False),
+        models.CommaSeparatedIntegerField: serpy.StrField(required=False),
+        models.DateField: serpy.StrField(required=False),
+        models.DateTimeField: serpy.StrField(required=False),
+        models.DecimalField: serpy.FloatField(required=False),
+        models.EmailField: serpy.StrField(required=False),
+        models.Field: serpy.StrField(required=False),
+        models.FileField: serpy.StrField(required=False),
+        models.FloatField: serpy.FloatField(required=False),
+        models.ImageField: serpy.StrField(required=False),
+        models.IntegerField: serpy.IntField(required=False),
+        models.NullBooleanField: serpy.StrField(required=False),
+        models.PositiveIntegerField: serpy.IntField(required=False),
+        models.PositiveSmallIntegerField: serpy.IntField(required=False),
+        models.SlugField: serpy.StrField(required=False),
+        models.SmallIntegerField: serpy.IntField(required=False),
+        models.TextField: serpy.StrField(required=False),
+        models.TimeField: serpy.StrField(required=False),
+        models.URLField: serpy.StrField(required=False),
+        models.GenericIPAddressField: serpy.StrField(required=False),
+        models.FilePathField: serpy.StrField(required=False),
+        models.ForeignKey: ForeignKeyField(),
+        models.fields.reverse_related.ManyToOneRel: ForeignKeyField(),
+        models.OneToOneField: ForeignKeyField(),
+        models.fields.related.ManyToManyField: ForeignKeyField()
+    }
+    return model_serpy_map[model_field_type]
+
+
+
 def M2MRelations(field, attr):
     """
     Given a M2M field and a desired output, return the string containing the result.
@@ -270,6 +320,7 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
         'model': endpoint.model,
         'fields': fields if fields is not None else endpoint.get_fields_for_serializer()
     }
+
     meta_parents = (object, )
     if hasattr(base_class, 'Meta'):
         meta_parents = (base_class.Meta, ) + meta_parents
@@ -283,15 +334,15 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
     }
 
     for meta_field in meta_attrs['fields']:
-        if meta_field not in base_class._declared_fields:
-            try:
-                model_field = endpoint.model._meta.get_field(meta_field)
-                if isinstance(model_field, OneToOneRel):
-                    cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
-                elif isinstance(model_field, ManyToOneRel):
-                    cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-            except FieldDoesNotExist:
-                cls_attrs[meta_field] = serializers.ReadOnlyField()
+        #if meta_field not in base_class._declared_fields:
+        try:
+            model_field = endpoint.model._meta.get_field(meta_field)
+            if isinstance(model_field, OneToOneRel):
+                cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
+            elif isinstance(model_field, ManyToOneRel):
+                cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+        except FieldDoesNotExist:
+            cls_attrs[meta_field] = serializers.ReadOnlyField()
 
     cls_attrs['to_internal_value'] = to_internal_value
 
@@ -300,7 +351,6 @@ def related_serializer_factory(endpoint=None, fields=None, base_class=None, mode
 
 
 def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
-
     if model is not None:
         assert endpoint is None, "You cannot specify both a model and an endpoint"
         from .endpoints import Endpoint
@@ -320,7 +370,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
         meta_parents = (base_class.Meta, ) + meta_parents
 
     Meta = type('Meta', meta_parents, meta_attrs)
-
     cls_name = '{}Serializer'.format(endpoint.model.__name__)
     cls_attrs = {
         'Meta': Meta,
@@ -356,7 +405,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                        and f.name != M2MRelations(field,'related_field')
                 ]
                 through_fields.append('__str__')
-
                 SubSerializer = related_serializer_factory(model=through_model, fields = through_fields)
 
                 cls_attrs[field.field.name] = SubSerializer(source=M2MRelations(field, 'related_name'), many=True, required=False, allow_null=True)
@@ -370,30 +418,36 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     ######
     # END - ADDED CODE
     ######
-
     for meta_field in meta_attrs['fields']:
-        if meta_field not in base_class._declared_fields:
-            try:
-                model_field = endpoint.model._meta.get_field(meta_field)
-                if isinstance(model_field, OneToOneRel):
-                    cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
-                elif isinstance(model_field, ManyToOneRel) and model_field.name != "children": # This part of the code has been modified too, as otherwise it was destroying the "children" case.
-                    cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-                elif isinstance(model_field, ManyToManyRel):
-                    # related ManyToMany should not be required
-                    cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(
-                        many=True,
-                        required=False,
-                        queryset=model_field.related_model.objects.all()
-                    )
-            except FieldDoesNotExist:
-                cls_attrs[meta_field] = serializers.ReadOnlyField()
+        # if meta_field not in base_class._declared_fields:
+        try:
+            model_field = endpoint.model._meta.get_field(meta_field)
+            if isinstance(model_field, OneToOneRel):
+                cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
+            elif isinstance(model_field, ManyToOneRel) and model_field.name != "children": # This part of the code has been modified too, as otherwise it was destroying the "children" case.
+                cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+            elif isinstance(model_field, ManyToManyRel):
+                # related ManyToMany should not be required
+                cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(
+                    many=True,
+                    required=False,
+                    queryset=model_field.related_model.objects.all()
+                )
+            elif model_field.__class__.__name__ == 'ForeignKey':
+                cls_attrs[meta_field] = serializers.StringRelatedField()
 
+            if endpoint.base_serializer.__name__ != 'ModelSerializer':
+                cls_attrs[meta_field] = get_serpy_type(model_field.__class__)
+
+        except FieldDoesNotExist:
+            cls_attrs[meta_field] = serializers.ReadOnlyField()
     try:
         return type(cls_name, (NullToDefaultMixin, base_class, ), cls_attrs)
     except TypeError:
         # MRO issue, let's try the other way around
         return type(cls_name, (base_class, NullToDefaultMixin, ), cls_attrs)
+
+
 
 #####################################
 ### PAGINATION FACTORY ###
@@ -472,7 +526,6 @@ def list_method(self, request, *args, **kwargs):
             # Raise other types of aggregate errors
             return Response(str(e), status=400)
         return Response(data, content_type=f'application/json')
-
     return super(self.__class__, self).list(request, *args, **kwargs)
     #return super().list(request, *args, **kwargs)
 
@@ -480,10 +533,10 @@ def viewset_factory(endpoint):
     from .endpoints import BaseEndpoint
 
     base_viewset = endpoint.get_base_viewset()
-
     cls_name = '{}ViewSet'.format(endpoint.model.__name__)
     tmp_cls_attrs = {
         'serializer_class': endpoint.get_serializer(),
+        # 'serializer_class': serializer_class,
         'queryset': endpoint.queryset if getattr(endpoint, 'queryset', None) is not None \
             else endpoint.model.objects.all(),
         'endpoint': endpoint,

@@ -119,6 +119,7 @@ class BaseEndpoint(object):
     base_readonly_viewset = import_string(settings.BASE_READONLY_VIEWSET)
 
     model = None
+    serializer_shape = None # Added code by RA
     fields = None
     exclude_fields = ()
     extra_fields = None
@@ -181,14 +182,20 @@ class BaseEndpoint(object):
         return self.exclude_fields
 
     def get_fields_for_serializer(self):
-
         if self.fields is None:
             if self.serializer is not None:
                 return self.serializer().fields.keys()
-
-            self.fields = tuple([f for f in get_all_field_names(self.model)
-                                 if f not in self.default_language_field_names and
-                                 f not in self.get_exclude_fields()])
+            # BEGIN # Added code by RA
+            if self.serializer_shape == 'base':
+                self.fields = tuple([f.name for f in self.model._meta.get_fields()
+                                 if f.name not in self.default_language_field_names and
+                                 f.name not in self.get_exclude_fields() and
+                                 not f.auto_created])
+            else: # TODO desenvolupar diferencies per altres tipus si pertoca.
+                self.fields = tuple([f for f in get_all_field_names(self.model)
+                                     if f not in self.default_language_field_names and
+                                     f not in self.get_exclude_fields()])
+            # END # Added code by RA
             if self.extra_fields is not None:
                 self.fields += tuple(self.extra_fields)
             if self.include_str:
@@ -197,7 +204,6 @@ class BaseEndpoint(object):
         return self.fields
 
     def get_serializer(self, data=None):
-
         if self.serializer is None:
             if self.viewset is None:
                 self.serializer = serializer_factory(self)
@@ -208,7 +214,7 @@ class BaseEndpoint(object):
                 self.serializer = self.viewset.get_serializer_class()
 
         if data is None:
-           return self.serializer
+            return self.serializer
 
         return self.serializer(data)
 
@@ -433,7 +439,8 @@ class Endpoint(with_metaclass(EndpointMetaClass, BaseEndpoint)):
 
         arg_names = ('fields', 'serializer', 'permission_classes', 'filter_fields', 'search_fields',
                      'viewset', 'read_only', 'include_str', 'ordering_fields', 'page_size',
-                     'base_viewset', 'fields_annotation', 'fieldsets', 'base_serializer', 'list_me')
+                     'base_viewset', 'fields_annotation', 'fieldsets', 'base_serializer', 'list_me',
+                     'serializer_shape') # Added code by RA
         for arg_name in arg_names:
             setattr(self, arg_name, kwargs.pop(arg_name, getattr(self, arg_name, None)))
 

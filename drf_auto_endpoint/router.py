@@ -21,7 +21,7 @@ class EndpointRouter(DefaultRouter):
                  serializer=None, filter_fields=None, read_only=False, viewset=None,
                  search_fields=None, ordering_fields=None, page_size=None, base_viewset=None,
                  base_name=None, fields_annotation=None, fielsets=None, base_serializer=None,
-                 list_me=True, prefix='', **kwargs):
+                 list_me=True, serializer_shape=None, prefix='', **kwargs):
 
         if (endpoint is None or isinstance(endpoint, type)):
             extra = {}
@@ -42,7 +42,8 @@ class EndpointRouter(DefaultRouter):
                 'search_fields': search_fields,
                 'ordering_fields': ordering_fields,
                 'fields_annotation': fields_annotation,
-                'list_me': list_me
+                'list_me': list_me,
+                'serializer_shape': serializer_shape
             }
             endpoint_kwargs.update(extra)
 

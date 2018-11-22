@@ -38,6 +38,9 @@ class AutoMetadataMixin(object):
         metadata.update(adapter.render_root(rv))
         return metadata
 
+    def get_field_dict(self, *args, **kwargs):
+        return get_field_dict(*args, **kwargs)
+
     def determine_metadata(self, request, view):
 
         try:
@@ -51,23 +54,26 @@ class AutoMetadataMixin(object):
         if view.__class__.__name__ in root_view_names or view in root_view_names:
             return self.root_metadata(metadata, view)
 
+        serializer = view.get_serializer_class()
+
         try:
             serializer_instance = view.get_serializer()
         except Exception:
             # Custom viewset is expecting something we can't guess
-            serializer_instance = view.get_serializer_class()()
+            serializer_instance = serializer()
         endpoint = None
         if hasattr(view, 'endpoint'):
             endpoint = view.endpoint
         else:
-            if hasattr(view.get_serializer_class().Meta, 'model'):
+            if hasattr(serializer.Meta, 'model'):
                 from .endpoints import Endpoint
-                endpoint = Endpoint(view.get_serializer_class().Meta.model, viewset=view)
+                endpoint = Endpoint(serializer.Meta.model, viewset=view)
 
         adapter = import_string(settings.METADATA_ADAPTER)()
         if endpoint is None:
             fields_metadata = []
-            for field in view.get_serializer_class().Meta.fields:
+
+            for field in serializer_instance.fields.keys():
                 if field in {'id', '__str__'}:
                     continue
 
@@ -77,7 +83,7 @@ class AutoMetadataMixin(object):
                 if type_ is None:
                     raise NotImplementedError()
 
-                field_metadata = get_field_dict(field, view.get_serializer_class())
+                field_metadata = self.get_field_dict(field, serializer)
 
                 fields_metadata.append(field_metadata)
 
@@ -89,7 +95,7 @@ class AutoMetadataMixin(object):
                             'title': None,
                             'fields': [
                                 {'key': field}
-                                for field in view.get_serializer_class().Meta.fields
+                                for field in serializer_instance.fields.keys()
                                 if field != 'id' and field != '__str__'
                             ]
                         }]
@@ -102,10 +108,8 @@ class AutoMetadataMixin(object):
                         method = getattr(endpoint, 'get_{}'.format(meta_info.attr))
                         try:
                             metadata[meta_info.attr] = method(request)
-
                         except TypeError:
                             metadata[meta_info.attr] = method()
-
                     else:
                         metadata[meta_info.attr] = getattr(endpoint, meta_info.attr, meta_info.default)
                 except AttributeError:

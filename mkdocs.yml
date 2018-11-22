@@ -7,5 +7,17 @@ pages:
     - 'Endpoint': drf_auto_endpoint/endpoint.md
     - 'Metadata': drf_auto_endpoint/metadata.md
   - 'Export-app': export_app/index.md
+  - 'Cookbooks':
+    - 'Basics':
+      - 'Quick start': cookbooks/basics/quickstart.md
+      - 'Creating endpoints from models': cookbooks/basics/endpoints.md
+      - 'Using drf-schema-adapter with Ember.js': cookbooks/basics/ember.md
+    - 'Topics':
+      - 'Custom MetaData Adapter': cookbooks/topics/custom_metadata_adapter.md
+      - 'Custom Export Adapter': cookbooks/topics/custom_export_adapter.md
+      - 'Custom ViewSets': cookbooks/topics/viewsets.md
+      - 'Custom Serializers': cookbooks/topics/serializers.md
+      - 'Custom Actions': cookbooks/topics/actions.md
+      - 'Custom Actions With Specialized Serializers': cookbooks/topics/wizards.md
   - License: LICENSE.md
   - 'Code of conduct': COC.md

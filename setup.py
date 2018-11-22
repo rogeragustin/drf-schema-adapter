@@ -8,6 +8,9 @@ try:
 except ImportError:
     with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
         README = readme.read()
+except OSError:
+    # pandoc is not installed, fallback to using raw contents
+    README = open('README.md').read()
 
 
 # allow setup.py to be run from any path
@@ -15,7 +18,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='drf-schema-adapter',
-    version='0.9.48',
+    version='0.9.75',
     packages=['drf_auto_endpoint', 'export_app', 'export_app.management',
               'export_app.management.commands'],
     include_package_data=True,
@@ -31,6 +34,8 @@ setup(
         'Framework :: Django :: 1.8',
         'Framework :: Django :: 1.9',
         'Framework :: Django :: 1.10',
+        'Framework :: Django :: 1.11',
+        'Framework :: Django :: 2.0',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
@@ -40,14 +45,17 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires=[
         'Django>=1.8',
         'djangorestframework<4.0.0',
-        'django-filter>=0.13.0',
+        'django-filter<2.0; python_version<"3.0"',
+        'django-filter>=0.13.0; python_version>="3.0"',
         'Inflector>=2.0.11',
+        'six',
         'djangorestframework-recursive>=0.1.2',
         'drf-writable-nested>=0.3.2',
     ]

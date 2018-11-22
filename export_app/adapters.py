@@ -90,12 +90,16 @@ class BaseAdapter(object):
     def rebuild_index(self):
         pass
 
+    @classmethod
+    def adapt_fields_for_model(cls, fields, relationships):
+        return fields, relationships
+
 
 class EmberAdapter(BaseAdapter):
 
     FIELD_TYPE_MAPPING = {
         'BooleanField': 'boolean',
-        'NullBooleanField': 'boolean',
+        'NullBooleanField': None,
         'IntegerField': 'number',
         'FloatField': 'number',
         'DecimalField': 'number',
@@ -103,11 +107,12 @@ class EmberAdapter(BaseAdapter):
         'DictField': None,
         'JSONField': None,
         'PrimaryKeyRelatedField': 'belongsTo',
+        'SlugRelatedField': 'belongsTo',
         'ManyRelatedField': 'hasMany',
         'DateField': 'nullable',
         'DateTimeField': 'nullable',
         'TimeField': 'nullable',
-        'DurationField': 'nullable',
+        'DurationField': 'duration',
         'UUIDField': 'nullable',
     }
     DEFAULT_MAPPING = 'string'

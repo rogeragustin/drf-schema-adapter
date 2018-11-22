@@ -2,6 +2,10 @@ from django.utils.module_loading import import_string
 
 from inflector import Inflector
 
+try:
+    from rest_framework.decorators import action
+except ImportError:
+    action = None
 from rest_framework.response import Response
 from rest_framework.serializers import PrimaryKeyRelatedField
 
@@ -16,8 +20,11 @@ def custom_action(method='GET', type='request', icon_class=None, btn_class=None,
     })
 
     def decorator(func):
-        func.bind_to_methods = [method, ]
-        func.detail = True
+        if action is not None:
+            func = action(methods=[method], detail=True, **kwargs)(func)
+        else:
+            func.detail = True
+            func.bind_to_methods = [method]
         func.action_type = 'custom'
         func.action_kwargs = action_kwargs(icon_class, btn_class, text, func, kwargs)
         func.kwargs = {}
@@ -34,8 +41,11 @@ def bulk_action(method='GET', type='request', icon_class=None, btn_class=None, t
     })
 
     def decorator(func):
-        func.bind_to_methods = [method, ]
-        func.detail = False
+        if action is not None:
+            func = action(methods=[method], detail=False, **kwargs)(func)
+        else:
+            func.bind_to_methods = [method, ]
+            func.detail = False
         func.action_type = 'bulk'
         func.action_kwargs = action_kwargs(icon_class, btn_class, text, func, kwargs)
         func.action_kwargs['atOnce'] = func.action_kwargs.get('atOnce', True)
@@ -71,16 +81,15 @@ def wizard(target_model, serializer=None, icon_class=None, btn_class=None, text=
     needs = []
     fields = []
     Adapter = import_string(settings.METADATA_ADAPTER)
-    for field in serializer.Meta.fields:
-        field_instance = serializer_instance.fields[field]
-        if isinstance(field_instance, PrimaryKeyRelatedField):
-            model = field_instance.queryset.model
+    for field_name, field in serializer_instance.fields.items():
+        if isinstance(field, PrimaryKeyRelatedField):
+            model = field.queryset.model
             needs.append({
                 'app': model._meta.app_label,
                 'singular': model._meta.model_name.lower(),
                 'plural': inflector.pluralize(model._meta.model_name.lower()),
             })
-        fields.append(Adapter.adapt_field(get_field_dict(field, serializer)))
+        fields.append(Adapter.adapt_field(get_field_dict(field_name, serializer)))
     kwargs['params']['needs'] = needs
     kwargs['params']['fields'] = fields
     kwargs['languages'] = get_languages()
@@ -98,23 +107,30 @@ def wizard(target_model, serializer=None, icon_class=None, btn_class=None, text=
 
             return func(self, request, *args, **kwargs)
 
-        wizard_func.bind_to_methods = [kwargs.pop('method', 'POST'), ]
-        wizard_func.action_type = meta_type
+        wizard_func.__name__ = func.__name__
         if meta_type == 'custom':
-            wizard_func.detail = True
+            detail = True
         else:
-            wizard_func.detail = False
+            detail = False
+
+        if action is not None:
+            wizard_func = action(methods=[kwargs.pop('method', 'post')], detail=detail, **kwargs)(wizard_func)  # NoQA
+            wizard_func.__name__ = func.__name__
+        else:
+            wizard_func.bind_to_methods = [kwargs.pop('method', 'POST'), ]
+            wizard_func.detail = detail
+
+        wizard_func.action_type = meta_type
         wizard_func.wizard = True
         wizard_func.action_kwargs = action_kwargs(icon_class, btn_class, text, wizard_func, kwargs)
         wizard_func.kwargs = {}
         if target_model is not None:
             wizard_func.action_kwargs['params']['model'] = '{}/{}/{}'.format(
-                target_model._meta.app_label.lower(),
+                target_model._meta.app_label.lower().replace('_', '-'),
                 inflector.pluralize(target_model._meta.model_name.lower()),
                 wizard_func.__name__
             )
         wizard_func.serializer = serializer
-        wizard_func.__name__ = func.__name__
 
         return Adapter.adapt_wizard(wizard_func)
 

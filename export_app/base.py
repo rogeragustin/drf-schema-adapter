@@ -1,6 +1,8 @@
+from django.core.exceptions import FieldDoesNotExist
 from django.utils.module_loading import import_string
 
-from rest_framework.serializers import PrimaryKeyRelatedField, ManyRelatedField, ModelSerializer, ListSerializer
+from rest_framework.serializers import (PrimaryKeyRelatedField, ManyRelatedField, ModelSerializer,
+                                        ListSerializer, SlugRelatedField)
 
 from export_app import settings
 
@@ -63,28 +65,46 @@ class BaseSerializerExporter(object):
 
         return model, serializer_instance, model_name, application_name
 
-    def get_fields_for_model(self, model, serializer_instance, adapter, target_app=None):
+    def get_fields_for_model(self, model, serializer_instance, adapter, target_app=None, endpoint=None):
         return [], []
 
 
 class SerializerExporterWithFields(BaseSerializerExporter):
 
-    def _extract_field_info(self, model, field_name, field, fields, relationships, adapter, target_app, allow_recursion=False):
+    def _extract_field_info(self, model, field_name, field, fields, relationships, adapter, target_app,
+                            allow_recursion=False, relationship_as_attribute=False):
         if field_name == 'id':
             return None
         field_item = {
             'name': field_name,
             'type': adapter.field_type_mapping[field.__class__.__name__]
         }
-        if isinstance(field, PrimaryKeyRelatedField) or isinstance(field, ManyRelatedField) \
-                or isinstance(field, ModelSerializer):
-            if model is None:
-                field_item['related_model'] = field.queryset.model._meta.model_name.lower()
-                field_item['app'] = target_app if target_app is not None else \
-                    field.queryset.model._meta.app_label.lower()
-                relationships.append(field_item)
+        if not relationship_as_attribute and (isinstance(field, PrimaryKeyRelatedField) or
+                                              isinstance(field, SlugRelatedField) or
+                                              isinstance(field, ManyRelatedField) or
+                                              isinstance(field, ModelSerializer)):
+
+            model_field = None
+            if model is not None:
+                try:
+                    model_field = model._meta.get_field(field_name)
+                except FieldDoesNotExist:
+                    pass
+
+            if model_field is None:
+                if isinstance(field, PrimaryKeyRelatedField) or isinstance(field, SlugRelatedField):
+                    queryset = field.queryset
+                else:
+                    queryset = field._kwargs['child_relation'].queryset
+
+                if queryset is not None:
+                    field_item['related_model'] = queryset.model._meta.model_name.lower()
+                    field_item['app'] = target_app if target_app is not None else \
+                        queryset.model._meta.app_label.lower()
+                    relationships.append(field_item)
+                else:
+                    field_item['type'] = 'CharField'
             else:
-                model_field = model._meta.get_field(field_name)
                 field_item['related_model'] = model_field.related_model._meta.model_name.lower()
                 field_item['app'] = target_app if target_app is not None else \
                     model_field.related_model._meta.app_label.lower()
@@ -120,20 +140,30 @@ class SerializerExporterWithFields(BaseSerializerExporter):
                     item.pop('inverse', None)
                     relationships.append(item)
             else:
-                field_item['type'] = adapter.field_type_mapping('ListField')
+                field_item['type'] = adapter.field_type_mapping['ListField']
                 fields.append(field_item)
 
         else:
+            if relationship_as_attribute:
+                field_item['type'] = adapter.field_type_mapping[None]
             fields.append(field_item)
 
         return field_item
 
-    def get_fields_for_model(self, model, serializer_instance, adapter, target_app=None):
+    def get_fields_for_model(self, model, serializer_instance, adapter, target_app=None, endpoint=None):
 
         fields = []
         relationships = []
 
         for field_name, field in serializer_instance.get_fields().items():
-            self._extract_field_info(model, field_name, field, fields, relationships, adapter, target_app, True)
+            relationship_as_attribute = False
+            if endpoint is not None:
+                if getattr(endpoint, 'foreign_key_as_list', False):
+                    if endpoint.foreign_key_as_list is True:
+                        relationship_as_attribute = True
+                    else:
+                        relationship_as_attribute = field_name in endpoint.foreign_key_as_list
+            self._extract_field_info(model, field_name, field, fields, relationships, adapter, target_app, True,
+                                     relationship_as_attribute=relationship_as_attribute)
 
-        return fields, relationships
+        return adapter.adapt_fields_for_model(fields, relationships)

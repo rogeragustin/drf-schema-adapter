@@ -74,6 +74,7 @@ class ForeignKeyField(serpy.Field):
            return value
 
 
+
 def get_serpy_type(model_field_type):
     model_serpy_map = {
         models.AutoField: serpy.IntField(required=False),
@@ -433,7 +434,10 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                     required=False,
                     queryset=model_field.related_model.objects.all()
                 )
-            elif model_field.__class__.__name__ == 'ForeignKey':
+            elif (model_field.__class__.__name__ == 'ForeignKey') \
+                    and (endpoint.base_serializer.__name__ != 'ModelSerializer'):
+                # For serpy models (fast read), we automatize the StringRelated pattern
+                # For normal drf (used when both read/write is required) we don't use it.
                 cls_attrs[meta_field] = serializers.StringRelatedField()
 
             if endpoint.base_serializer.__name__ != 'ModelSerializer':

@@ -1,0 +1,18 @@
+### MODIFICACIONS A LA LLIBRERIA DRF_AUTO_ENDPOINT ###
+* Afegir recursive serializers quan hi ha self relationships (pels menús).
+* Afegir suport a l'escriptura i l'actualització.
+* Afegir filtratge sofisticat a les viewsets.
+* Afegir suport a triar quin tipus de serialitzador volem que es generi (base, 1 level, FK, nested...)
+
+Canvis: (# Added code by RA)
+factories.py
+
+
+endpoints.py
+443 -> Afegir 'serializer_type' com a arg_names a la classe Endpoint
+122 -> Afegir 'serializer_type' com a var base a la classe BaseEndpoint
+188 -> Afegir suport a diversos tipus de serialitzador a la funció get_fields_for_serializer.
+
+router.py
+24 -> Afegir serializer_type com a variable d'entrada al mètode register de la classe EndpointRouter.
+46 -> Afegir serializer_type com un dels endpoint_kwarg.

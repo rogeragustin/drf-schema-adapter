@@ -1,5 +1,6 @@
 from rest_framework import pagination, serializers
 from rest_framework.filters import OrderingFilter, SearchFilter
+from django.contrib.postgres.fields import JSONField
 
 try:
     #from django_filters.rest_framework import DjangoFilterBackend
@@ -104,7 +105,8 @@ def get_serpy_type(model_field_type):
         models.ForeignKey: ForeignKeyField(),
         models.fields.reverse_related.ManyToOneRel: ForeignKeyField(),
         models.OneToOneField: ForeignKeyField(),
-        models.fields.related.ManyToManyField: ForeignKeyField()
+        models.fields.related.ManyToManyField: ForeignKeyField(),
+        JSONField: serpy.StrField(required=False),
     }
     return model_serpy_map[model_field_type]
 

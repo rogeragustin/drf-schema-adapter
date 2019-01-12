@@ -30,6 +30,8 @@ from datetime import datetime
 
 from drf_aggregates.renderers import AggregateRenderer
 from drf_aggregates.exceptions import AggregateException
+from config.custom_files.renderers import CSVRenderer
+# from config.custom_files.renderers import CSVException
 from rest_framework.response import Response
 
 
@@ -532,6 +534,10 @@ def list_method(self, request, *args, **kwargs):
             # Raise other types of aggregate errors
             return Response(str(e), status=400)
         return Response(data, content_type=f'application/json')
+    elif isinstance(renderer, CSVRenderer):
+        db_table = self.endpoint.model._meta.db_table
+        data = {'db_table': db_table, 'request': request}
+        return Response(data, content_type=f'application/csv')
     return super(self.__class__, self).list(request, *args, **kwargs)
     #return super().list(request, *args, **kwargs)
 

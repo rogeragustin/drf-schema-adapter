@@ -27,12 +27,14 @@ from django.db.models.fields import NOT_PROVIDED
 from rest_framework_recursive.fields import RecursiveField
 from drf_writable_nested import WritableNestedModelSerializer
 from datetime import datetime
+from rest_framework.response import Response
 
 from drf_aggregates.renderers import AggregateRenderer
 from drf_aggregates.exceptions import AggregateException
 from config.custom_files.renderers import CSVRenderer
 # from config.custom_files.renderers import CSVException
-from rest_framework.response import Response
+from config.custom_files.permissions import CustomDjangoModelPermissions
+
 
 
 class NullToDefaultMixin(object):
@@ -566,6 +568,8 @@ def viewset_factory(endpoint):
 
     if endpoint.permission_classes is not None:
         cls_attrs['permission_classes'] = endpoint.permission_classes
+    else:
+        cls_attrs['permission_classes'] = (CustomDjangoModelPermissions,)
 
     filter_backends = getattr(endpoint.get_base_viewset(), 'filter_backends', ())
     if filter_backends is None:

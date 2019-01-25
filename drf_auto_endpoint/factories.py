@@ -13,10 +13,11 @@ from django.core.exceptions import FieldDoesNotExist
 from django_filters import FilterSet
 
 try:
-    from django.db.models.fields.reverse_related import ManyToOneRel, OneToOneRel, ManyToManyRel, ForeignObjectRel
+    from django.db.models.fields.reverse_related import (ManyToOneRel, OneToOneRel, ManyToManyRel,
+                                                         ManyToManyField, ForeignObjectRel)
 except ImportError:
     # Django 1.8
-    from django.db.models.fields.related import ManyToOneRel, OneToOneRel, ManyToManyRel
+    from django.db.models.fields.related import ManyToOneRel, OneToOneRel, ManyToManyRel, ManyToManyField
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -31,7 +32,7 @@ from rest_framework.response import Response
 
 from drf_aggregates.renderers import AggregateRenderer
 from drf_aggregates.exceptions import AggregateException
-from config.custom_files.renderers import CSVRenderer
+from config.custom_files.renderers import CSVRenderer, CSVEndpointRenderer
 # from config.custom_files.renderers import CSVException
 from config.custom_files.permissions import CustomDjangoModelPermissions
 
@@ -395,10 +396,10 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
             pass
 
     # Special treatment for many to many fields.
-    for f in [f for f in endpoint.model._meta.get_fields() if f.many_to_many and not f.auto_created and
-              f.name in meta_attrs['fields']]:
+    m2m_fields = [f for f in endpoint.model._meta.get_fields() if f.many_to_many and not f.auto_created and
+              f.name in meta_attrs['fields']]
+    for f in m2m_fields:
         field = eval("endpoint.model.{}".format(f.name))
-
         try:
             through_model_name = M2MRelations(field, 'through_model')
             if '_' not in through_model_name:
@@ -415,7 +416,6 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 SubSerializer = related_serializer_factory(model=through_model, fields = through_fields)
 
                 cls_attrs[field.field.name] = SubSerializer(source=M2MRelations(field, 'related_name'), many=True, required=False, allow_null=True)
-
                 cls_attrs["create"] = create
                 cls_attrs["update"] = update
 
@@ -425,7 +425,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
     ######
     # END - ADDED CODE
     ######
-    for meta_field in meta_attrs['fields']:
+    for meta_field in [f for f in meta_attrs['fields'] if f not in [k.name for k in m2m_fields]]:
         # if meta_field not in base_class._declared_fields:
         try:
             model_field = endpoint.model._meta.get_field(meta_field)
@@ -433,7 +433,7 @@ def serializer_factory(endpoint=None, fields=None, base_class=None, model=None):
                 cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(read_only=True)
             elif isinstance(model_field, ManyToOneRel) and model_field.name != "children": # This part of the code has been modified too, as otherwise it was destroying the "children" case.
                 cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-            elif isinstance(model_field, ManyToManyRel):
+            elif isinstance(model_field, ManyToManyRel) or isinstance(model_field, ManyToManyField):
                 # related ManyToMany should not be required
                 cls_attrs[meta_field] = serializers.PrimaryKeyRelatedField(
                     many=True,
@@ -526,6 +526,7 @@ def filter_factory(endpoint):
 #####################################
 def list_method(self, request, *args, **kwargs):
     renderer = request.accepted_renderer
+
     if isinstance(renderer, AggregateRenderer):
         queryset = self.filter_queryset(self.get_queryset())
         try:
@@ -540,6 +541,9 @@ def list_method(self, request, *args, **kwargs):
         db_table = self.endpoint.model._meta.db_table
         data = {'db_table': db_table, 'request': request}
         return Response(data, content_type=f'application/csv')
+    elif isinstance(renderer, CSVEndpointRenderer):
+        data = {'endpoint': self.endpoint, 'request': request}
+        return Response(data, content_type=f'application/text')
     return super(self.__class__, self).list(request, *args, **kwargs)
     #return super().list(request, *args, **kwargs)
 

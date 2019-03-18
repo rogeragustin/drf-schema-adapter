@@ -32,8 +32,8 @@ from rest_framework.response import Response
 
 from drf_aggregates.renderers import AggregateRenderer
 from drf_aggregates.exceptions import AggregateException
-#from config.custom_files.renderers import (DbRenderer, FullCSVRenderer,)
-from config.custom_files.renderers import (CSVEndpointRenderer, CSVRenderer,)
+from config.custom_files.renderers import (DbRenderer, FullCSVRenderer,)
+# from config.custom_files.renderers import (CSVEndpointRenderer, CSVRenderer,)
 # from config.custom_files.renderers import CSVException
 from config.custom_files.permissions import CustomDjangoModelPermissions
 
@@ -538,13 +538,13 @@ def list_method(self, request, *args, **kwargs):
             # Raise other types of aggregate errors
             return Response(str(e), status=400)
         return Response(data, content_type=f'application/json')
-    elif isinstance(renderer, CSVEndpointRenderer):
-    #elif isinstance(renderer, DbRenderer):
-        db_table = self.endpoint.model._meta.db_table
+    # elif isinstance(renderer, CSVEndpointRenderer):
+    elif isinstance(renderer, DbRenderer):
+        # db_table = self.endpoint.model._meta.db_table
         data = {'endpoint': self.endpoint, 'request': request}
         return Response(data, content_type=f'application/csv')
-    elif isinstance(renderer, CSVRenderer):
-    #elif isinstance(renderer, FullCSVRenderer):
+    # elif isinstance(renderer, CSVRenderer):
+    elif isinstance(renderer, FullCSVRenderer):
         data = {'endpoint': self.endpoint, 'request': request}
         return Response(data, content_type=f'application/text')
     return super(self.__class__, self).list(request, *args, **kwargs)
